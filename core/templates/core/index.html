@@ -1,0 +1,149 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Teletraan Services | Soporte técnico y software en Copiapó{% endblock %}
+{% block social_title %}Teletraan Services | Soporte técnico y software en Copiapó{% endblock %}
+{% block meta_description %}Soporte técnico, mantenimiento de computadores, armado de equipos y desarrollo web en Copiapó. Solicita tu servicio y síguelo en línea.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ProfessionalService","name":"Teletraan Services","url":"{{ request.scheme }}://{{ request.get_host }}{% url 'index' %}","image":"{{ request.scheme }}://{{ request.get_host }}{% static 'core/img/teletraan-logo.jpg' %}","description":"Soporte técnico, mantenimiento de computadores y desarrollo de software en Copiapó, Chile.","areaServed":{"@type":"City","name":"Copiapó"},"address":{"@type":"PostalAddress","addressLocality":"Copiapó","addressCountry":"CL"},"knowsAbout":["Soporte técnico de computadores","Mantenimiento informático","Desarrollo de software","Diseño web"]}
+</script>
+{% endblock %}
+{% block content %}
+<!-- Presentación -->
+<section id="hero" class="py-5 text-center position-relative my-lg-5">
+  <div class="container py-5">
+    
+    <div class="hero-logo-box mb-4">
+      <img src="{% static 'core/img/teletraan-logo.jpg' %}" alt="Logo de Teletraan Services" class="hero-logo-img" width="1024" height="1024">
+    </div>
+
+    <div>
+      <span class="badge bg-primary bg-opacity-20 text-info border border-info mb-3 px-3 py-2">
+        <i class="bi bi-shield-check me-1"></i> Servicio Técnico & Software en Copiapó
+      </span>
+    </div>
+
+    <h1 class="display-3 fw-bold text-white mb-3">
+      Soluciones Tecnológicas de <span class="text-white">Alto Nivel</span>
+    </h1>
+    
+    <p class="lead text-secondary mx-auto mb-4" style="max-width: 700px;">
+      Soporte técnico confiable, equipos optimizados y software creado para resolver problemas reales de tu negocio.
+    </p>
+    
+    <!-- Botones de Acción Inmediata -->
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="#servicios" class="btn btn-teletraan btn-lg px-4">
+        <i class="bi bi-cpu me-1"></i> Ver Servicios
+      </a>
+      <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="btn btn-outline-teletraan btn-lg px-4">
+        <i class="bi bi-envelope me-1"></i> Solicitar Cotización
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Servicios -->
+<section id="servicios" class="py-5 bg-black bg-opacity-20">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold text-white">Nuestros Servicios</h2>
+      <p class="text-secondary">Soluciones prácticas para tus equipos y proyectos digitales.</p>
+    </div>
+    
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="card card-teletraan h-100 p-4 text-center">
+          <div class="display-5 text-info mb-3"><i class="bi bi-tools"></i></div>
+          <h4 class="h5 text-white">Mantenimiento de PC</h4>
+          <p class="text-secondary small">Limpieza, mantenimiento y diagnóstico preventivo o correctivo para extender la vida útil de tu equipo.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card card-teletraan h-100 p-4 text-center">
+          <div class="display-5 text-info mb-3"><i class="bi bi-cpu"></i></div>
+          <h4 class="h5 text-white">Ensamblado Custom</h4>
+          <p class="text-secondary small">Computadores para jugar o trabajar, configurados según tus necesidades y presupuesto.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card card-teletraan h-100 p-4 text-center">
+          <div class="display-5 text-info mb-3"><i class="bi bi-code-slash"></i></div>
+          <h4 class="h5 text-white">Desarrollo de Software</h4>
+          <p class="text-secondary small">Aplicaciones web, automatizaciones y herramientas a medida para simplificar procesos.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card card-teletraan h-100 p-4 text-center">
+          <div class="display-5 text-info mb-3"><i class="bi bi-layout-text-window-reverse"></i></div>
+          <h4 class="h5 text-white">Diseño Web Moderno</h4>
+          <p class="text-secondary small">Sitios web claros, adaptables a móviles y preparados para presentar tu negocio.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sobre Teletraan -->
+<section id="nosotros" class="py-5">
+  <div class="container py-4">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <h2 class="fw-bold text-white mb-3">En Teletraan Services optimizamos tu tecnología</h2>
+        <p class="text-secondary">
+          Desde Copiapó entregamos soporte informático y desarrollo con comunicación clara y seguimiento de cada orden.
+        </p>
+        <ul class="list-unstyled text-secondary">
+          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Diagnósticos claros antes de avanzar.</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Seguimiento de tu servicio desde tu cuenta.</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Comunicación directa durante el proceso.</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <div class="card card-teletraan p-4">
+          <h3 class="h5 text-white mb-3"><i class="bi bi-search me-2"></i>¿Ya eres cliente?</h3>
+          <p class="text-secondary small">Consulta el estado de tus órdenes y conversa con nuestro equipo desde tu espacio de cliente.</p>
+          {% if user.is_authenticated %}
+            {% if user.is_staff %}
+              <a href="{% url 'admin_panel' %}" class="btn btn-teletraan w-100">
+                <i class="bi bi-speedometer2 me-2"></i>Ir al Panel de Administración
+              </a>
+            {% else %}
+              <a href="{% url 'dashboard' %}" class="btn btn-teletraan w-100">
+                <i class="bi bi-speedometer2 me-2"></i>Ir a mi Panel de Estado
+              </a>
+            {% endif %}
+          {% else %}
+            <div class="d-grid gap-2">
+              <a href="{% url 'login' %}" class="btn btn-teletraan">Iniciar Sesión de Cliente</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contacto -->
+<section id="contacto" class="py-5 bg-black bg-opacity-20">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <h2 class="fw-bold text-white mb-3">Contáctanos</h2>
+        <p class="text-secondary mb-4">¿Necesitas soporte o una cotización? Inicia sesión para contarnos qué necesitas.</p>
+        
+        <!-- La creación de solicitudes está disponible para clientes autenticados. -->
+        <div class="card card-teletraan p-4 text-start">
+          <p class="text-secondary">Para mantener el seguimiento de tu solicitud y conversar directamente con nuestro equipo, inicia sesión o crea una cuenta.</p>
+          {% if user.is_authenticated %}<a class="btn btn-teletraan w-100" href="{% url 'dashboard' %}">Ir a mis servicios</a>{% else %}<div class="d-grid gap-2"><a class="btn btn-teletraan" href="{% url 'login' %}">Iniciar sesión para solicitar</a><a class="btn btn-outline-teletraan" href="{% url 'register' %}">Crear cuenta</a></div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

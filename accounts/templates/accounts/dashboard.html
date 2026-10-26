@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Mi espacio | Teletraan Services{% endblock %}
+{% block robots_content %}noindex, nofollow{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div><h1 class="text-white fw-bold">Mi espacio de servicio</h1><p class="text-secondary mb-0">Hola {{ user.first_name|default:user.username }}, aquí puedes solicitar ayuda y seguir tus órdenes.</p></div>
+    <span class="badge text-bg-info">{{ servicios|length }} órdenes</span>
+  </div>
+  <div class="card card-teletraan p-4 mb-4">
+    <h2 class="h4 text-white">Nueva solicitud</h2>
+    <form method="post" novalidate>{% csrf_token %}
+      {{ solicitud_form.non_field_errors }}
+      <div class="mb-3"><label class="form-label text-white" for="id_equipo">Equipo o servicio</label>{{ solicitud_form.equipo }}{{ solicitud_form.equipo.errors }}</div>
+      <div class="mb-3"><label class="form-label text-white" for="id_descripcion_falla">¿Qué necesitas?</label>{{ solicitud_form.descripcion_falla }}{{ solicitud_form.descripcion_falla.errors }}</div>
+      <button class="btn btn-teletraan" type="submit">Enviar solicitud</button>
+    </form>
+  </div>
+  {% for servicio in servicios %}
+  <article class="card card-teletraan p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><h2 class="h4 text-white mb-1">#{{ servicio.pk }} · {{ servicio.equipo }}</h2><small class="text-secondary">{{ servicio.fecha_ingreso|date:'d/m/Y H:i' }}</small></div><span class="badge {% if servicio.estado == 'TERM' %}text-bg-success{% elif servicio.estado == 'EJE' %}text-bg-primary{% else %}text-bg-info{% endif %} align-self-start">{{ servicio.get_estado_display }}</span></div>
+    <p class="text-secondary">{{ servicio.descripcion_falla }}</p>
+    {% if servicio.costo_estimado or servicio.detalle_evaluacion %}<div class="alert alert-info"><strong>Evaluación</strong>{% if servicio.costo_estimado %}<div>${{ servicio.costo_estimado }} CLP</div>{% endif %}{% if servicio.tiempo_estimado %}<div>Tiempo estimado: {{ servicio.tiempo_estimado }}</div>{% endif %}{% if servicio.detalle_evaluacion %}<p class="mb-0 mt-2">{{ servicio.detalle_evaluacion|linebreaksbr }}</p>{% endif %}</div>{% endif %}
+    <h3 class="h6 text-info">Conversación con Teletraan</h3>
+    <div class="chat-messages bg-black p-3 rounded border border-secondary mb-3" data-poll-url="{% url 'nuevos_mensajes' servicio.pk %}" style="max-height:240px;overflow:auto" aria-live="polite">
+      {% for msg in servicio.core_mensajes.all %}<div data-message-id="{{ msg.pk }}" class="p-2 mb-2 rounded {% if msg.emisor.is_staff %}bg-primary bg-opacity-10{% else %}bg-secondary bg-opacity-10 text-end{% endif %}"><small class="d-block text-info">{{ msg.emisor.username }} · {{ msg.fecha_envio|date:'d/m/Y H:i' }}</small><span class="text-white">{{ msg.mensaje|linebreaksbr }}</span></div>{% empty %}<p class="text-secondary mb-0">Aún no hay mensajes.</p>{% endfor %}
+    </div>
+    <form action="{% url 'enviar_mensaje' servicio.pk %}" method="post">{% csrf_token %}<label class="visually-hidden" for="mensaje-{{ servicio.pk }}">Mensaje</label><div class="input-group"> <input id="mensaje-{{ servicio.pk }}" name="mensaje" maxlength="2000" class="form-control bg-dark text-white" required placeholder="Escribe una consulta…"><button class="btn btn-teletraan">Enviar</button></div></form>
+  </article>
+  {% empty %}<div class="card card-teletraan p-4 text-center text-secondary">Aún no tienes órdenes. Usa el formulario para crear tu primera solicitud.</div>{% endfor %}
+</div>
+<script src="{% static 'core/js/chat.js' %}" defer></script>
+{% endblock %}

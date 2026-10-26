@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Iniciar sesión | Teletraan Services{% endblock %}
+{% block robots_content %}noindex, nofollow{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card card-teletraan p-4 shadow-lg">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-white">Iniciar Sesión</h2>
+                    <p class="text-secondary small">Accede al panel de Teletraan Services.</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label text-white fw-semibold">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-teletraan w-100 py-2 mt-3">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-secondary small mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-info text-decoration-none fw-bold">Regístrate</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let inputs = document.querySelectorAll("input");
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('form-control', 'bg-dark', 'text-white', 'border-secondary');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+﻿# Python bytecode and cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Django local data and generated files
+db.sqlite3
+*.sqlite3
+*.sqlite3-journal
+media/
+staticfiles/
+
+# Logs and temporary files
+*.log
+*.pot
+*.py,cover
+.tmp/
+tmp/
+
+# Test and type-check caches
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Build and packaging artifacts
+build/
+dist/
+.eggs/
+*.egg
+*.egg-info/
+
+# Editor and IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini

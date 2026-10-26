@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+{% block title %}Privacidad y cookies | Teletraan Services{% endblock %}
+{% block meta_description %}Información sobre las cookies necesarias que utiliza Teletraan Services.{% endblock %}
+{% block robots_content %}noindex, follow{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center"><div class="col-lg-8">
+    <span class="badge rounded-pill text-bg-primary mb-3">Privacidad</span>
+    <h1 class="text-white fw-bold mb-3">Privacidad y cookies</h1>
+    <p class="lead text-secondary">Este sitio usa únicamente cookies necesarias para ofrecer las funciones que solicitas.</p>
+    <div class="card card-teletraan p-4 p-md-5 mt-4">
+      <h2 class="h4 text-white">Cookies necesarias</h2>
+      <p class="text-secondary">Django utiliza una cookie de sesión para mantener tu acceso cuando inicias sesión y una cookie CSRF para proteger los formularios contra solicitudes no autorizadas. El sitio guarda además una preferencia en una cookie para recordar que ya viste este aviso.</p>
+      <p class="text-secondary">Estas cookies no se usan para publicidad ni para crear perfiles de navegación. Actualmente no tenemos instaladas cookies de analítica o seguimiento de terceros.</p>
+      <h2 class="h4 text-white mt-4">Datos de tu cuenta y solicitudes</h2>
+      <p class="text-secondary">Si creas una cuenta, Teletraan Services procesa los datos que ingresas para habilitar tu acceso, gestionar las solicitudes de servicio y responder los mensajes asociados. No compartas información sensible en los formularios o chats.</p>
+      <h2 class="h4 text-white mt-4">Administrar cookies</h2>
+      <p class="text-secondary mb-0">Puedes borrar o bloquear las cookies desde la configuración de tu navegador. Si bloqueas las cookies necesarias, el inicio de sesión y algunas funciones de la plataforma podrían dejar de funcionar.</p>
+    </div>
+    <a href="{% url 'index' %}" class="btn btn-outline-teletraan mt-4">Volver al inicio</a>
+  </div></div>
+</div>
+{% endblock %}
