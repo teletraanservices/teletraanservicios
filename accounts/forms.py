@@ -1,5 +1,44 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.exceptions import ValidationError
 from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
+
+
+class LoginForm(AuthenticationForm):
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        'inactive': 'Esta cuenta está inactiva. Contacta al administrador.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({
+            'class': 'form-control',
+            'autocomplete': 'username',
+            'autofocus': True,
+            'placeholder': 'Tu usuario',
+        })
+        self.fields['password'].widget.attrs.update({
+            'class': 'form-control',
+            'autocomplete': 'current-password',
+            'placeholder': 'Tu contraseña',
+            'aria-describedby': 'password-help',
+        })
+        self.fields['username'].error_messages['required'] = 'Ingresa tu nombre de usuario.'
+        self.fields['password'].error_messages['required'] = 'Ingresa tu contraseña.'
+        for name in ('username', 'password'):
+            if self[name].errors:
+                self.fields[name].widget.attrs.update({
+                    'class': 'form-control is-invalid',
+                    'aria-invalid': 'true',
+                    'aria-describedby': f'{name}-error',
+                })
+
+    def get_invalid_login_error(self):
+        return ValidationError(
+            'Usuario o contraseña incorrectos. Verifica tus datos e inténtalo nuevamente.',
+            code='invalid_login',
+        )
 
 
 class SolicitudServicioForm(forms.ModelForm):

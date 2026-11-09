@@ -122,6 +122,13 @@ a { text-underline-offset: .2em; }
   border-color: var(--tt-primary);
   box-shadow: 0 0 0 .22rem rgba(22, 139, 255, .18);
 }
+.login-page { display: flex; align-items: center; min-height: min(72vh, 760px); }
+.login-card { transition: border-color .2s ease, box-shadow .2s ease; }
+.login-card:hover { transform: none; }
+.login-icon { display: inline-grid; width: 3.25rem; height: 3.25rem; place-items: center; color: #8fc7ff; background: var(--tt-primary-soft); border: 1px solid rgba(22, 139, 255, .24); border-radius: 1rem; font-size: 1.5rem; }
+.login-error { color: #ffd9dc; background: rgba(240, 68, 82, .12); border-color: rgba(240, 68, 82, .42); font-size: .92rem; }
+.password-toggle { display: inline-flex; align-items: center; gap: .4rem; }
+.password-toggle[hidden] { display: none; }
 .form-check-input:checked { background-color: var(--tt-primary-strong); border-color: var(--tt-primary-strong); }
 .table-dark { --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255, 255, 255, .025); --bs-table-hover-bg: rgba(86, 214, 208, .06); }
 .nav-tabs { border-color: var(--tt-border); }

@@ -4,6 +4,43 @@ from django.test import TestCase
 from core.models import PortfolioItem
 
 
+class LoginExperienceTests(TestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(username='cliente', password='secure-test-password')
+
+	def test_login_page_has_accessible_password_visibility_control(self):
+		response = self.client.get('/accounts/login/')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'data-password-toggle')
+		self.assertContains(response, 'aria-controls="id_password"')
+
+	def test_invalid_credentials_show_clear_error(self):
+		response = self.client.post('/accounts/login/', {
+			'username': self.user.username,
+			'password': 'incorrecta',
+		})
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Usuario o contraseña incorrectos.')
+		self.assertNotIn('_auth_user_id', self.client.session)
+
+	def test_empty_login_fields_show_spanish_errors(self):
+		response = self.client.post('/accounts/login/', {})
+
+		self.assertContains(response, 'Ingresa tu nombre de usuario.')
+		self.assertContains(response, 'Ingresa tu contraseña.')
+
+	def test_valid_credentials_log_user_in(self):
+		response = self.client.post('/accounts/login/', {
+			'username': self.user.username,
+			'password': 'secure-test-password',
+		})
+
+		self.assertRedirects(response, '/accounts/dashboard/')
+		self.assertIn('_auth_user_id', self.client.session)
+
+
 class PortfolioAccessTests(TestCase):
 	def setUp(self):
 		self.admin = User.objects.create_user(username='owner', password='test-password', is_staff=True)
