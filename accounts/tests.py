@@ -16,6 +16,7 @@ class LoginExperienceTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'data-password-toggle')
 		self.assertContains(response, 'aria-controls="id_password"')
+		self.assertContains(response, 'class="row justify-content-center w-100"')
 
 	def test_invalid_credentials_show_clear_error(self):
 		response = self.client.post('/accounts/login/', {
