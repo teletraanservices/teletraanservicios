@@ -33,7 +33,7 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get(
-        'DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,teletraan.local'
+        'DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,teletraan.local,.onrender.com'
     ).split(',')
     if host.strip()
 ]
@@ -146,6 +146,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 
 
 # Email: consola local y SMTP configurable fuera de desarrollo.
@@ -178,7 +180,21 @@ STATICFILES_BACKEND = (
     else 'django.contrib.staticfiles.storage.StaticFilesStorage'
 )
 STORAGES = {
-    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'default': (
+        {
+            'BACKEND': 'storages.backends.s3.S3Storage',
+            'OPTIONS': {
+                'bucket_name': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
+                'region_name': os.environ.get('AWS_S3_REGION_NAME'),
+                'endpoint_url': os.environ.get('AWS_S3_ENDPOINT_URL') or None,
+                'access_key': os.environ.get('AWS_ACCESS_KEY_ID') or None,
+                'secret_key': os.environ.get('AWS_SECRET_ACCESS_KEY') or None,
+                'querystring_auth': os.environ.get('AWS_QUERYSTRING_AUTH', 'true').lower() in {'1', 'true', 'yes', 'on'},
+            },
+        }
+        if os.environ.get('AWS_STORAGE_BUCKET_NAME')
+        else {'BACKEND': 'django.core.files.storage.FileSystemStorage'}
+    ),
     'staticfiles': {'BACKEND': STATICFILES_BACKEND},
 }
 

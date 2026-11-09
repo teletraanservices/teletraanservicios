@@ -88,6 +88,56 @@
   </div>
 </section>
 
+<!-- Portafolio -->
+<section id="proyectos" class="portfolio-section py-5">
+  <div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+      <div>
+        <span class="section-kicker">TRABAJO REAL · RESULTADOS VISIBLES</span>
+        <h2 class="fw-bold text-white mt-2 mb-2">Proyectos destacados</h2>
+        <p class="text-secondary mb-0">Una muestra de lo que podemos construir para tu negocio.</p>
+      </div>
+      <a href="#contacto" class="btn btn-outline-teletraan"><i class="bi bi-chat-dots me-2"></i>Hablemos de tu proyecto</a>
+    </div>
+
+    <div class="row g-4">
+      {% for proyecto in proyectos %}
+        <div class="col-md-6 col-xl-4">
+          <article class="portfolio-card h-100">
+            <div class="portfolio-media">
+              {% if proyecto.video %}
+                <video controls preload="metadata" playsinline {% if proyecto.image %}poster="{{ proyecto.image.url }}"{% endif %} aria-label="Video: {{ proyecto.title }}">
+                  <source src="{{ proyecto.video.url }}">
+                  Tu navegador no permite reproducir este video.
+                </video>
+              {% elif proyecto.image %}
+                <img src="{{ proyecto.image.url }}" alt="{{ proyecto.title }}" loading="lazy">
+              {% endif %}
+            </div>
+            <div class="portfolio-copy">
+              <span class="portfolio-type">{% if proyecto.video %}PROYECTO · VIDEO{% else %}PROYECTO · GALERÍA{% endif %}</span>
+              <h3 class="h5 text-white mt-2 mb-2">{{ proyecto.title }}</h3>
+              <p class="text-secondary mb-3">{{ proyecto.description|linebreaksbr }}</p>
+              <div class="d-flex flex-wrap gap-3">
+                {% if proyecto.project_url %}<a class="portfolio-link" href="{{ proyecto.project_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>Ver proyecto</a>{% endif %}
+                {% if proyecto.video_url %}<a class="portfolio-link" href="{{ proyecto.video_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-play-circle me-1"></i>Ver video</a>{% endif %}
+              </div>
+            </div>
+          </article>
+        </div>
+      {% empty %}
+        <div class="col-12">
+          <div class="portfolio-empty">
+            <i class="bi bi-window-stack" aria-hidden="true"></i>
+            <h3 class="h5 text-white mt-3">Pronto verás nuestros proyectos aquí</h3>
+            <p class="text-secondary mb-0">Estamos preparando una selección de trabajos de Teletraan Services.</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
 <!-- Sobre Teletraan -->
 <section id="nosotros" class="py-5">
   <div class="container py-4">

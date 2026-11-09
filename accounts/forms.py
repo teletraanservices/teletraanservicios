@@ -1,5 +1,5 @@
 from django import forms
-from core.models import MensajeProyecto, ServicioCliente
+from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
 
 
 class SolicitudServicioForm(forms.ModelForm):
@@ -29,4 +29,20 @@ class ActualizarServicioForm(forms.ModelForm):
             'tiempo_estimado': forms.TextInput(attrs={'class': 'form-control'}),
             'agenda_aceptada': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'detalle_evaluacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class PortfolioItemForm(forms.ModelForm):
+    class Meta:
+        model = PortfolioItem
+        fields = ['title', 'description', 'image', 'video', 'video_url', 'project_url', 'is_published', 'position']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/jpeg,image/png,image/webp'}),
+            'video': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'video/mp4,video/webm'}),
+            'video_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
+            'project_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'position': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
         }

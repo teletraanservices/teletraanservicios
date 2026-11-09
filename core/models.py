@@ -1,5 +1,12 @@
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
+
+
+def validate_portfolio_file_size(upload):
+    if upload.size > 100 * 1024 * 1024:
+        raise ValidationError('El archivo no puede superar los 100 MB.')
 
 
 class ServicioCliente(models.Model):
@@ -54,3 +61,37 @@ class MensajeProyecto(models.Model):
 
     def __str__(self):
         return f'Mensaje de {self.emisor} en servicio #{self.servicio_id}'
+
+
+class PortfolioItem(models.Model):
+    title = models.CharField(max_length=120, verbose_name='Título')
+    description = models.TextField(max_length=1200, verbose_name='Descripción')
+    image = models.ImageField(
+        upload_to='portfolio/images/',
+        blank=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']), validate_portfolio_file_size],
+        verbose_name='Imagen',
+    )
+    video = models.FileField(
+        upload_to='portfolio/videos/',
+        blank=True,
+        validators=[FileExtensionValidator(['mp4', 'webm']), validate_portfolio_file_size],
+        verbose_name='Video',
+    )
+    video_url = models.URLField(blank=True, verbose_name='Enlace de video')
+    project_url = models.URLField(blank=True, verbose_name='Enlace del proyecto')
+    is_published = models.BooleanField(default=True, verbose_name='Publicado')
+    position = models.PositiveIntegerField(default=0, verbose_name='Orden')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['position', '-created_at']
+        verbose_name = 'proyecto del portafolio'
+        verbose_name_plural = 'proyectos del portafolio'
+
+    def clean(self):
+        if not self.image and not self.video and not self.video_url:
+            raise ValidationError('Agrega una imagen o un video para mostrar el proyecto.')
+
+    def __str__(self):
+        return self.title

@@ -9,8 +9,8 @@ from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from core.models import MensajeProyecto, ServicioCliente
-from .forms import ActualizarServicioForm, MensajeProyectoForm, SolicitudServicioForm
+from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
+from .forms import ActualizarServicioForm, MensajeProyectoForm, PortfolioItemForm, SolicitudServicioForm
 
 
 def register_view(request):
@@ -65,14 +65,69 @@ def admin_panel_view(request):
         Prefetch('mensajes', queryset=MensajeProyecto.objects.select_related('emisor'))
     )
     clientes = User.objects.filter(is_staff=False, is_superuser=False).annotate(
-        total_servicios=Count('servicios', distinct=True)
+        total_servicios=Count('core_servicios_cliente', distinct=True)
     ).order_by('-date_joined')
+    proyectos = PortfolioItem.objects.all()
     return render(request, 'accounts/admin_panel.html', {
         'servicios': servicios,
         'clientes': clientes,
+        'proyectos': proyectos,
         'estados': ServicioCliente.ESTADOS,
         'mensaje_form': MensajeProyectoForm(),
     })
+
+
+@staff_member_required
+def portfolio_item_create_view(request):
+    form = PortfolioItemForm(
+        request.POST if request.method == 'POST' else None,
+        request.FILES if request.method == 'POST' else None,
+    )
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Proyecto agregado al portafolio.')
+        return redirect('admin_panel')
+    return render(request, 'accounts/portfolio_form.html', {'form': form, 'heading': 'Agregar proyecto'})
+
+
+@staff_member_required
+def portfolio_item_edit_view(request, item_id):
+    item = get_object_or_404(PortfolioItem, pk=item_id)
+    old_image = item.image.name
+    old_video = item.video.name
+    form = PortfolioItemForm(
+        request.POST if request.method == 'POST' else None,
+        request.FILES if request.method == 'POST' else None,
+        instance=item,
+    )
+    if request.method == 'POST' and form.is_valid():
+        item = form.save()
+        if old_image and old_image != item.image.name:
+            item.image.storage.delete(old_image)
+        if old_video and old_video != item.video.name:
+            item.video.storage.delete(old_video)
+        messages.success(request, 'Proyecto actualizado.')
+        return redirect('admin_panel')
+    return render(request, 'accounts/portfolio_form.html', {
+        'form': form,
+        'heading': 'Editar proyecto',
+        'item': item,
+    })
+
+
+@staff_member_required
+@require_POST
+def portfolio_item_delete_view(request, item_id):
+    item = get_object_or_404(PortfolioItem, pk=item_id)
+    image = item.image
+    video = item.video
+    item.delete()
+    if image:
+        image.storage.delete(image.name)
+    if video:
+        video.storage.delete(video.name)
+    messages.success(request, 'Proyecto retirado del portafolio.')
+    return redirect('admin_panel')
 
 
 @login_required

@@ -4,9 +4,11 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 from xml.sax.saxutils import escape
+from .models import PortfolioItem
 
 def index_view(request):
-    return render(request, 'core/index.html')
+    proyectos = PortfolioItem.objects.filter(is_published=True)
+    return render(request, 'core/index.html', {'proyectos': proyectos})
 
 
 def cookies_view(request):

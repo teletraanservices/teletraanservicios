@@ -1,6 +1,6 @@
 # Teletraan Services
 
-Plataforma web de Teletraan Services construida con Django. Incluye páginas públicas de servicios, cuentas de clientes, solicitudes de proyectos y un panel de administración.
+Plataforma web de Teletraan Services construida con Django. Incluye páginas públicas de servicios y portafolio, cuentas de clientes, solicitudes y conversaciones, además de un panel de administración para gestionar proyectos publicados.
 
 ## Desarrollo local
 
