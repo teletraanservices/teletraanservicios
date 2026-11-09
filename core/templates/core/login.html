@@ -45,11 +45,19 @@
                         <div class="form-text" id="password-help">La contraseña distingue mayúsculas y minúsculas.</div>
                     </div>
 
+                    <div class="form-check mt-3">
+                        {{ form.remember_me }}
+                        <label class="form-check-label small text-secondary" for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label }}</label>
+                    </div>
+
                     <button type="submit" class="btn btn-teletraan w-100 py-2 mt-3">
                         <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>Ingresar
                     </button>
                 </form>
 
+                <div class="text-center mt-3">
+                    <a href="{% url 'password_reset' %}" class="login-secondary-link small">¿Olvidaste tu contraseña?</a>
+                </div>
                 <div class="text-center mt-4">
                     <p class="text-secondary small mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-info text-decoration-none fw-bold">Crea una cuenta</a></p>
                 </div>
@@ -59,21 +67,5 @@
 </div>
 {% endblock %}
 {% block extra_scripts %}
-<script>
-    const passwordToggle = document.querySelector('[data-password-toggle]');
-    if (passwordToggle) {
-        const passwordInput = document.getElementById(passwordToggle.getAttribute('aria-controls'));
-        if (passwordInput) {
-            passwordToggle.hidden = false;
-            passwordToggle.addEventListener('click', function () {
-                const isVisible = passwordInput.type === 'text';
-                passwordInput.type = isVisible ? 'password' : 'text';
-                passwordToggle.setAttribute('aria-pressed', String(!isVisible));
-                passwordToggle.setAttribute('aria-label', isVisible ? 'Mostrar contraseña' : 'Ocultar contraseña');
-                passwordToggle.querySelector('span').textContent = isVisible ? 'Mostrar' : 'Ocultar';
-                passwordToggle.querySelector('i').className = isVisible ? 'bi bi-eye' : 'bi bi-eye-slash';
-            });
-        }
-    }
-</script>
+<script src="{% static 'core/js/auth.js' %}" defer></script>
 {% endblock %}

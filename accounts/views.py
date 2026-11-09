@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -10,7 +11,24 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
-from .forms import ActualizarServicioForm, MensajeProyectoForm, PortfolioItemForm, SolicitudServicioForm
+from .forms import (
+    ActualizarServicioForm,
+    LoginForm,
+    MensajeProyectoForm,
+    PortfolioItemForm,
+    SolicitudServicioForm,
+)
+
+
+class SiteLoginView(LoginView):
+    template_name = 'core/login.html'
+    authentication_form = LoginForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        session_age = 30 * 24 * 60 * 60 if form.cleaned_data.get('remember_me') else 0
+        self.request.session.set_expiry(session_age)
+        return response
 
 
 def register_view(request):

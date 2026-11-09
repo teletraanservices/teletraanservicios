@@ -1,10 +1,18 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import PasswordResetForm as DjangoPasswordResetForm
+from django.contrib.auth.forms import SetPasswordForm as DjangoSetPasswordForm
 from django.core.exceptions import ValidationError
 from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
 
 
 class LoginForm(AuthenticationForm):
+    remember_me = forms.BooleanField(
+        required=False,
+        label='Mantener mi sesión iniciada durante 30 días',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+
     error_messages = {
         **AuthenticationForm.error_messages,
         'inactive': 'Esta cuenta está inactiva. Contacta al administrador.',
@@ -39,6 +47,29 @@ class LoginForm(AuthenticationForm):
             'Usuario o contraseña incorrectos. Verifica tus datos e inténtalo nuevamente.',
             code='invalid_login',
         )
+
+
+class PasswordResetForm(DjangoPasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs.update({
+            'class': 'form-control',
+            'autocomplete': 'email',
+            'autofocus': True,
+            'placeholder': 'nombre@correo.com',
+        })
+
+
+class SetPasswordForm(DjangoSetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ('new_password1', 'new_password2'):
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control',
+                'autocomplete': 'new-password',
+                'placeholder': 'Ingresa una contraseña segura',
+                'data-password-input': '',
+            })
 
 
 class SolicitudServicioForm(forms.ModelForm):

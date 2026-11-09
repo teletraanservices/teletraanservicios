@@ -17,8 +17,8 @@ python manage.py runserver
 
 Abre `http://127.0.0.1:8000/`. Para la configuración local opcional, copia `.env.example` a `.env` y completa los valores. No publiques `.env` ni credenciales.
 
-## Despliegue en Railway
+## Despliegue en Render
 
-La guía de configuración de PostgreSQL, variables, comandos de despliegue y dominio está en [DEPLOYMENT.md](DEPLOYMENT.md). Railway debe conectarse al repositorio de GitHub y desplegar desde la rama `main`.
+La guía para configurar el Web Service, PostgreSQL, variables, comandos de despliegue, correo y dominio en Render está en [DEPLOYMENT.md](DEPLOYMENT.md). Conecta Render al repositorio de GitHub y despliega desde la rama `main`.
 
-El proyecto ofrece `/health/` para la comprobación de estado y los endpoints `/robots.txt` y `/sitemap.xml` para buscadores. La disponibilidad continua, el dominio y la indexación dependen de la configuración y operación de Railway y de los buscadores.
+El proyecto ofrece `/health/` para la comprobación de estado y los endpoints `/robots.txt` y `/sitemap.xml` para buscadores. La disponibilidad, el dominio y la indexación dependen de la configuración de Render y de los buscadores.
