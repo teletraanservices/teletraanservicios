@@ -1,9 +1,14 @@
+from io import BytesIO
+import tempfile
+
 from django.contrib.auth.models import User
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
-from core.models import PortfolioItem
+from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
 
 
 class LoginExperienceTests(TestCase):
@@ -113,6 +118,9 @@ class PortfolioAccessTests(TestCase):
 	def setUp(self):
 		self.admin = User.objects.create_user(username='owner', password='test-password', is_staff=True)
 		self.client_user = User.objects.create_user(username='customer', password='test-password')
+		self.media_dir = tempfile.TemporaryDirectory()
+		self.addCleanup(self.media_dir.cleanup)
+		self.enterContext(override_settings(MEDIA_ROOT=self.media_dir.name))
 
 	def test_staff_can_open_portfolio_form(self):
 		self.client.force_login(self.admin)
@@ -136,6 +144,32 @@ class PortfolioAccessTests(TestCase):
 		self.assertRedirects(response, '/accounts/admin-panel/')
 		self.assertTrue(PortfolioItem.objects.filter(title='Sitio de muestra', is_published=True).exists())
 
+	def test_staff_can_upload_project_image_and_video_with_links(self):
+		image_content = BytesIO()
+		Image.new('RGB', (2, 2), color='blue').save(image_content, format='PNG')
+		image = SimpleUploadedFile('captura.png', image_content.getvalue(), content_type='image/png')
+		video = SimpleUploadedFile('demo.mp4', b'mp4 test content', content_type='video/mp4')
+		self.client.force_login(self.admin)
+
+		response = self.client.post(reverse('portfolio_create'), {
+			'title': 'Proyecto multimedia',
+			'description': 'Captura, video y enlaces del proyecto.',
+			'image': image,
+			'video': video,
+			'video_url': 'https://example.com/demo',
+			'project_url': 'https://example.com/proyecto',
+			'is_published': 'on',
+			'position': '0',
+		})
+
+		self.assertRedirects(response, reverse('admin_panel'))
+		project = PortfolioItem.objects.get(title='Proyecto multimedia')
+		self.assertTrue(project.image.name.endswith('captura.png'))
+		self.assertTrue(project.video.name.endswith('demo.mp4'))
+		self.assertEqual(project.video_url, 'https://example.com/demo')
+		self.assertEqual(project.project_url, 'https://example.com/proyecto')
+		self.assertTrue(project.is_published)
+
 	def test_customer_cannot_manage_portfolio(self):
 		self.client.force_login(self.client_user)
 		response = self.client.post('/accounts/portfolio/nuevo/', {
@@ -148,6 +182,42 @@ class PortfolioAccessTests(TestCase):
 
 		self.assertNotEqual(response.status_code, 200)
 		self.assertFalse(PortfolioItem.objects.filter(title='Proyecto no autorizado').exists())
+
+	def test_staff_panel_loads_orders_and_conversation_history(self):
+		service = ServicioCliente.objects.create(
+			cliente=self.client_user,
+			equipo='Sitio web',
+			descripcion_falla='Necesito actualizar el sitio.',
+		)
+		MensajeProyecto.objects.create(
+			servicio=service,
+			emisor=self.client_user,
+			mensaje='¿Cómo va mi solicitud?',
+		)
+		self.client.force_login(self.admin)
+
+		response = self.client.get(reverse('admin_panel'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, '¿Cómo va mi solicitud?')
+
+	def test_client_dashboard_loads_own_conversation_history(self):
+		service = ServicioCliente.objects.create(
+			cliente=self.client_user,
+			equipo='Sitio web',
+			descripcion_falla='Necesito actualizar el sitio.',
+		)
+		MensajeProyecto.objects.create(
+			servicio=service,
+			emisor=self.admin,
+			mensaje='Ya revisé tu solicitud.',
+		)
+		self.client.force_login(self.client_user)
+
+		response = self.client.get(reverse('dashboard'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Ya revisé tu solicitud.')
 
 	def test_homepage_only_shows_published_projects(self):
 		PortfolioItem.objects.create(
@@ -167,3 +237,37 @@ class PortfolioAccessTests(TestCase):
 
 		self.assertContains(response, 'Visible')
 		self.assertNotContains(response, 'Privado')
+
+	def test_staff_can_update_any_order_and_reply_to_its_customer(self):
+		service = ServicioCliente.objects.create(
+			cliente=self.client_user,
+			equipo='Sitio web',
+			descripcion_falla='Necesito actualizar el sitio.',
+		)
+		self.client.force_login(self.admin)
+
+		response = self.client.post(reverse('admin_panel'), {
+			'servicio_id': service.pk,
+			'estado': 'COST',
+			'costo_estimado': '25000',
+			'tiempo_estimado': '2 días',
+			'agenda_aceptada': 'on',
+			'detalle_evaluacion': 'Evaluación completa.',
+		})
+		self.assertRedirects(response, reverse('admin_panel'))
+
+		response = self.client.post(
+			reverse('enviar_mensaje', args=[service.pk]),
+			{'mensaje': 'Ya revisé tu solicitud.'},
+		)
+		self.assertRedirects(response, reverse('admin_panel'))
+
+		service.refresh_from_db()
+		self.assertEqual(service.estado, 'COST')
+		self.assertEqual(service.costo_estimado, 25000)
+		self.assertTrue(service.agenda_aceptada)
+		self.assertTrue(MensajeProyecto.objects.filter(
+			servicio=service,
+			emisor=self.admin,
+			mensaje='Ya revisé tu solicitud.',
+		).exists())

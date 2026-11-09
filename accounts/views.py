@@ -58,7 +58,7 @@ def dashboard_view(request):
             return redirect('dashboard')
     mensajes = MensajeProyecto.objects.select_related('emisor')
     servicios = ServicioCliente.objects.filter(cliente=request.user).prefetch_related(
-        Prefetch('mensajes', queryset=mensajes)
+        Prefetch('core_mensajes', queryset=mensajes)
     )
     return render(request, 'accounts/dashboard.html', {
         'servicios': servicios,
@@ -80,7 +80,7 @@ def admin_panel_view(request):
         return redirect('admin_panel')
 
     servicios = ServicioCliente.objects.select_related('cliente').prefetch_related(
-        Prefetch('mensajes', queryset=MensajeProyecto.objects.select_related('emisor'))
+        Prefetch('core_mensajes', queryset=MensajeProyecto.objects.select_related('emisor'))
     )
     clientes = User.objects.filter(is_staff=False, is_superuser=False).annotate(
         total_servicios=Count('core_servicios_cliente', distinct=True)
@@ -176,7 +176,7 @@ def nuevos_mensajes_view(request, servicio_id):
         after_id = max(0, int(request.GET.get('after', 0)))
     except (TypeError, ValueError):
         after_id = 0
-    nuevos = servicio.mensajes.filter(pk__gt=after_id).select_related('emisor').order_by('pk')[:100]
+    nuevos = servicio.core_mensajes.filter(pk__gt=after_id).select_related('emisor').order_by('pk')[:100]
     return JsonResponse({'messages': [{
         'id': message.pk,
         'author': message.emisor.username,
