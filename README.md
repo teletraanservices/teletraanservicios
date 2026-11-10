@@ -15,7 +15,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Abre `http://127.0.0.1:8000/`. Para la configuración local opcional, copia `.env.example` a `.env` y completa los valores. No publiques `.env` ni credenciales.
+Abre `http://127.0.0.1:8000/`. El archivo `.env.example` es una referencia de las variables del servicio en Render; Django no carga archivos `.env` automáticamente. No publiques credenciales ni agregues un `.env` al repositorio.
 
 ## Despliegue en Render
 
