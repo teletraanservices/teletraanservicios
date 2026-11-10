@@ -419,6 +419,7 @@ class PortfolioAccessTests(TestCase):
 			title='Visible',
 			description='Proyecto publicado.',
 			video_url='https://www.youtube.com/watch?v=example',
+			project_url='https://example.com/proyecto',
 			is_published=True,
 		)
 		PortfolioItem.objects.create(
@@ -431,7 +432,19 @@ class PortfolioAccessTests(TestCase):
 		response = self.client.get('/')
 
 		self.assertContains(response, 'Visible')
+		self.assertContains(response, 'https://example.com/proyecto')
+		self.assertContains(response, 'https://www.youtube.com/watch?v=example')
 		self.assertNotContains(response, 'Privado')
+
+	def test_homepage_displays_clickable_business_contacts(self):
+		response = self.client.get(reverse('index'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'href="https://wa.me/56966526276"')
+		self.assertContains(response, 'href="mailto:teletraanservices@gmail.com"')
+		self.assertContains(response, 'href="https://www.instagram.com/teletraan._services/"')
+		self.assertContains(response, '+56 9 6652 6276')
+		self.assertContains(response, '@teletraan._services')
 
 	def test_staff_can_update_any_order_and_reply_to_its_customer(self):
 		service = ServicioCliente.objects.create(

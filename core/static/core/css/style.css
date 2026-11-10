@@ -180,6 +180,12 @@ footer { margin-top: 2rem; border-top: 1px solid var(--tt-border); background: r
 .portfolio-type { color: #8d9cac; font-size: .66rem; font-weight: 800; letter-spacing: .1em; }
 .portfolio-link { color: #8fc7ff; font-size: .9rem; font-weight: 700; text-decoration: none; }
 .portfolio-link:hover { color: #fff; }
+.contact-method { display: flex; align-items: flex-start; }
+.contact-method-icon { font-size: 1.8rem; line-height: 1; }
+.contact-method-action { color: #8fc7ff; font-size: .9rem; font-weight: 700; margin-top: auto; }
+.contact-method:hover .contact-method-action,
+.contact-method:focus-visible .contact-method-action { color: #fff; }
+.contact-method:focus-visible { outline: 2px solid var(--tt-primary); outline-offset: 3px; }
 .portfolio-empty { padding: 3.5rem 1rem; text-align: center; border: 1px dashed rgba(190, 205, 220, .24); border-radius: .75rem; }
 .portfolio-empty > i { color: #79baff; font-size: 2rem; }
 .portfolio-admin-item, .portfolio-form-panel { overflow: hidden; background: var(--tt-surface); border: 1px solid var(--tt-border); border-radius: .75rem; }

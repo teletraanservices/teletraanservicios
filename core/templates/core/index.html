@@ -181,18 +181,50 @@
 <!-- Contacto -->
 <section id="contacto" class="py-5 bg-black bg-opacity-20">
   <div class="container py-4">
-    <div class="row justify-content-center">
-      <div class="col-lg-8 text-center">
-        <h2 class="fw-bold text-white mb-3">Contáctanos</h2>
-        <p class="text-secondary mb-4">¿Necesitas soporte o una cotización? Inicia sesión para contarnos qué necesitas.</p>
-        
-        <!-- La creación de solicitudes está disponible para clientes autenticados. -->
-        <div class="card card-teletraan p-4 text-start">
-          <p class="text-secondary">Para mantener el seguimiento de tu solicitud y conversar directamente con nuestro equipo, inicia sesión o crea una cuenta.</p>
-          {% if user.is_authenticated %}<a class="btn btn-teletraan w-100" href="{% url 'dashboard' %}">Ir a mis servicios</a>{% else %}<div class="d-grid gap-2"><a class="btn btn-teletraan" href="{% url 'login' %}">Iniciar sesión para solicitar</a><a class="btn btn-outline-teletraan" href="{% url 'register' %}">Crear cuenta</a></div>{% endif %}
-        </div>
+    <div class="text-center mb-4">
+      <span class="section-kicker">HABLEMOS DE TU IDEA</span>
+      <h2 class="fw-bold text-white mt-2 mb-3">Contáctanos directamente</h2>
+      <p class="text-secondary mb-0">Elige el canal que te acomode. Estamos en Copiapó y listos para ayudarte.</p>
+    </div>
 
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <a class="card card-teletraan contact-method h-100 p-4 text-decoration-none" href="https://wa.me/56966526276" target="_blank" rel="noopener noreferrer" aria-label="Escribir a Teletraan Services por WhatsApp">
+          <span class="contact-method-icon text-success"><i class="bi bi-whatsapp" aria-hidden="true"></i></span>
+          <h3 class="h5 text-white mt-3 mb-1">WhatsApp</h3>
+          <p class="text-secondary mb-3">+56 9 6652 6276</p>
+          <span class="contact-method-action">Escríbenos <i class="bi bi-arrow-up-right ms-1" aria-hidden="true"></i></span>
+        </a>
       </div>
+      <div class="col-md-4">
+        <a class="card card-teletraan contact-method h-100 p-4 text-decoration-none" href="mailto:teletraanservices@gmail.com" aria-label="Enviar correo a Teletraan Services">
+          <span class="contact-method-icon text-info"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+          <h3 class="h5 text-white mt-3 mb-1">Correo electrónico</h3>
+          <p class="text-secondary mb-3 text-break">teletraanservices@gmail.com</p>
+          <span class="contact-method-action">Enviar correo <i class="bi bi-arrow-up-right ms-1" aria-hidden="true"></i></span>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a class="card card-teletraan contact-method h-100 p-4 text-decoration-none" href="https://www.instagram.com/teletraan._services/" target="_blank" rel="noopener noreferrer" aria-label="Visitar Instagram de Teletraan Services">
+          <span class="contact-method-icon text-info"><i class="bi bi-instagram" aria-hidden="true"></i></span>
+          <h3 class="h5 text-white mt-3 mb-1">Instagram</h3>
+          <p class="text-secondary mb-3">@teletraan._services</p>
+          <span class="contact-method-action">Visita nuestro perfil <i class="bi bi-arrow-up-right ms-1" aria-hidden="true"></i></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card card-teletraan p-4 p-md-5 text-center">
+      <h3 class="h5 text-white mb-2">¿Quieres hacer seguimiento de un servicio?</h3>
+      <p class="text-secondary mb-4">Accede a tu cuenta para crear solicitudes y conversar con nuestro equipo.</p>
+      {% if user.is_authenticated %}
+        <a class="btn btn-teletraan align-self-center" href="{% url 'dashboard' %}">Ir a mis servicios</a>
+      {% else %}
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+          <a class="btn btn-teletraan" href="{% url 'login' %}">Iniciar sesión</a>
+          <a class="btn btn-outline-teletraan" href="{% url 'register' %}">Crear cuenta</a>
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
