@@ -50,18 +50,22 @@ Mantén `DJANGO_HSTS_SECONDS=0` hasta confirmar que el dominio definitivo y todo
 
 ## 4. Correo para recuperación de contraseña
 
-La app usa el correo guardado en la cuenta para enviar un enlace temporal de un solo uso. En Render agrega al Web Service las variables SMTP de un proveedor transaccional:
+La app usa el correo guardado en la cuenta para enviar un enlace temporal de un solo uso. En Render Free los servicios no pueden abrir conexiones salientes en los puertos SMTP 25, 465 y 587 ([límites de Render](https://render.com/docs/free)); por eso la integración recomendada usa la [API HTTPS de Resend](https://resend.com/docs/api-reference/emails/send-email) (puerto 443), no SMTP. Crea una API key, verifica tu dominio y agrega al Web Service:
 
 ```text
-SMTP_HOST=<servidor SMTP de tu proveedor>
-SMTP_PORT=587
-SMTP_USERNAME=<usuario SMTP>
-SMTP_PASSWORD=<secreto SMTP>
-SMTP_USE_TLS=true
-DEFAULT_FROM_EMAIL=<remitente verificado por tu proveedor>
+RESEND_API_KEY=<API key de Resend>
+DEFAULT_FROM_EMAIL=Teletraan Services <no-reply@tu-dominio-verificado.cl>
 ```
 
-Marca las credenciales como secretas en Render. Verifica que el proveedor autorice el remitente y que cada cuenta tenga un correo correcto. En desarrollo Django imprime el correo en la consola; en producción usa SMTP.
+Marca `RESEND_API_KEY` como secreta en Render. El remitente debe pertenecer al dominio verificado en el proveedor. En un plan Render que permita SMTP, también se puede dejar `RESEND_API_KEY` sin configurar y usar `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` y `SMTP_USE_TLS=true`. En desarrollo Django imprime el mensaje en la consola; en producción, si falta el proveedor o el remitente verificado, la pantalla de recuperación informa que no se envió ningún enlace. La app reporta los fallos de entrega en lugar de confirmar un envío fallido.
+
+Después de guardar las variables, espera a que Render aplique la configuración y prueba `/accounts/password-reset/` con una cuenta cuyo correo controles. Confirma la recepción (incluida la carpeta de spam) y revisa el registro de envíos del proveedor. También puedes probar el envío desde la Shell de Render con:
+
+```text
+python manage.py shell -c "from django.core.mail import send_mail; send_mail('Prueba Teletraan', 'Correo de prueba.', None, ['TU_CORREO_VERIFICADO'])"
+```
+
+La recuperación de contraseña envía automáticamente su enlace cuando el formulario se envía, la cuenta está activa y tiene un correo asociado. Para cuentas no encontradas la respuesta es la misma y no revela si ese correo está registrado.
 
 ## 5. Después del primer despliegue
 

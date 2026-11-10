@@ -135,6 +135,11 @@ a { text-underline-offset: .2em; }
 .auth-card .form-text { color: var(--tt-muted); }
 .auth-card .password-toggle { white-space: nowrap; }
 .auth-message { padding: .9rem 1rem; color: var(--tt-muted); background: rgba(22, 139, 255, .08); border: 1px solid rgba(22, 139, 255, .2); border-radius: .75rem; }
+.admin-stat { display: flex; min-height: 5.25rem; flex-direction: column; justify-content: center; gap: .25rem; padding: 1rem 1.15rem; background: var(--tt-surface); border: 1px solid var(--tt-border); border-radius: .8rem; }
+.admin-stat strong { font-family: 'Manrope', sans-serif; font-size: 1.5rem; line-height: 1.2; }
+.admin-filter { background: linear-gradient(145deg, rgba(20, 34, 53, .96), rgba(16, 28, 45, .96)); }
+.admin-filter .form-label { margin-bottom: .4rem; font-size: .88rem; }
+.admin-pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.25rem; }
 .form-check-input:checked { background-color: var(--tt-primary-strong); border-color: var(--tt-primary-strong); }
 .table-dark { --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255, 255, 255, .025); --bs-table-hover-bg: rgba(86, 214, 208, .06); }
 .nav-tabs { border-color: var(--tt-border); }
@@ -185,6 +190,8 @@ footer { margin-top: 2rem; border-top: 1px solid var(--tt-border); background: r
 .portfolio-form-panel .form-control[type="file"] { max-width: 100%; }
 
 @media (max-width: 575.98px) {
+  .admin-pagination { align-items: flex-start; flex-direction: column; }
+  #clientes .table { min-width: 720px; }
   .row.g-5 { --bs-gutter-x: 1.5rem; }
   .navbar-brand { font-size: .68rem; letter-spacing: .015em; gap: .4rem !important; }
   .logo-img { width: 34px; height: 34px; }

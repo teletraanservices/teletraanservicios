@@ -23,7 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
+IS_RENDER = bool(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
+DEBUG = os.environ.get(
+    'DJANGO_DEBUG',
+    'false' if IS_RENDER else 'true',
+).strip().lower() in {'1', 'true', 'yes', 'on'}
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 if not SECRET_KEY:
     if not DEBUG:
@@ -151,23 +155,32 @@ MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 
 
-# Email: consola local y SMTP configurable fuera de desarrollo.
-MAILERS = {
-    'default': {
-        'BACKEND': (
-            'django.core.mail.backends.console.EmailBackend'
-            if DEBUG
-            else 'django.core.mail.backends.smtp.EmailBackend'
-        ),
-        'OPTIONS': {} if DEBUG else {
-            'host': os.environ.get('SMTP_HOST', 'localhost'),
+# Email: consola local; Resend API (HTTPS) en Render o SMTP alternativo.
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+if RESEND_API_KEY:
+    DEFAULT_MAILER = {
+        'BACKEND': 'accounts.email_backend.ResendEmailBackend',
+        'OPTIONS': {'api_key': RESEND_API_KEY},
+    }
+elif DEBUG and not IS_RENDER:
+    DEFAULT_MAILER = {
+        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'OPTIONS': {},
+    }
+else:
+    DEFAULT_MAILER = {
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': os.environ.get('SMTP_HOST', ''),
             'port': int(os.environ.get('SMTP_PORT', '587')),
             'username': os.environ.get('SMTP_USERNAME', ''),
             'password': os.environ.get('SMTP_PASSWORD', ''),
             'use_tls': os.environ.get('SMTP_USE_TLS', 'true').lower() in {'1', 'true', 'yes', 'on'},
             'timeout': 10,
         },
-    },
+    }
+MAILERS = {
+    'default': DEFAULT_MAILER,
 }
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@localhost')
 

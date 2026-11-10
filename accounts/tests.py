@@ -1,4 +1,5 @@
 from io import BytesIO
+import json
 import tempfile
 
 from django.contrib.auth.models import User
@@ -7,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
+from unittest.mock import MagicMock, patch
 
 from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
 
@@ -113,6 +115,106 @@ class PasswordResetExperienceTests(TestCase):
 		self.assertEqual(len(mail.outbox), 0)
 		self.assertContains(self.client.get(reverse('password_reset_done')), 'Si existe una cuenta activa')
 
+	@override_settings(MAILERS={
+		'default': {
+			'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+			'OPTIONS': {'host': ''},
+		},
+	})
+	def test_reset_form_warns_when_production_email_is_not_configured(self):
+		response = self.client.get(reverse('password_reset'))
+
+		self.assertContains(response, 'todavía no está habilitada')
+
+	@override_settings(MAILERS={
+		'default': {
+			'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+			'OPTIONS': {'host': ''},
+		},
+	})
+	def test_unconfigured_smtp_never_claims_a_recovery_email_was_sent(self):
+		response = self.client.post(reverse('password_reset'), {'email': self.user.email})
+
+		self.assertEqual(response.status_code, 503)
+		self.assertContains(response, 'no se envió ningún enlace', status_code=503)
+		self.assertEqual(len(mail.outbox), 0)
+
+	@override_settings(
+		MAILERS={
+			'default': {
+				'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+				'OPTIONS': {'host': 'smtp.example.com'},
+			},
+		},
+		DEFAULT_FROM_EMAIL='no-reply@localhost',
+	)
+	def test_local_placeholder_sender_is_not_accepted_in_production(self):
+		response = self.client.post(reverse('password_reset'), {'email': self.user.email})
+
+		self.assertEqual(response.status_code, 503)
+		self.assertContains(response, 'no se envió ningún enlace', status_code=503)
+
+	@override_settings(MAILERS={
+		'default': {
+			'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+			'OPTIONS': {'host': 'smtp.example.com'},
+		},
+	})
+	@patch('accounts.views.mail.get_connection')
+	def test_smtp_connection_failure_is_reported_without_success_redirect(self, get_connection):
+		get_connection.return_value.open.side_effect = OSError('SMTP unavailable')
+
+		response = self.client.post(reverse('password_reset'), {'email': self.user.email})
+
+		self.assertEqual(response.status_code, 503)
+		self.assertContains(response, 'no se envió ningún enlace', status_code=503)
+		get_connection.return_value.close.assert_not_called()
+
+	@override_settings(
+		MAILERS={
+			'default': {
+				'BACKEND': 'accounts.email_backend.ResendEmailBackend',
+				'OPTIONS': {'api_key': 'test-api-key'},
+			},
+		},
+		DEFAULT_FROM_EMAIL='Teletraan <no-reply@example.com>',
+	)
+	@patch('accounts.email_backend.urlopen')
+	def test_password_reset_sends_through_resend_https_api(self, urlopen_mock):
+		api_response = MagicMock()
+		api_response.status = 200
+		urlopen_mock.return_value.__enter__.return_value = api_response
+
+		response = self.client.post(reverse('password_reset'), {'email': self.user.email})
+
+		self.assertRedirects(response, reverse('password_reset_done'))
+		request = urlopen_mock.call_args.args[0]
+		payload = json.loads(request.data)
+		self.assertEqual(request.full_url, 'https://api.resend.com/emails')
+		self.assertEqual(request.get_header('Authorization'), ' '.join(('Bearer', 'test-api-key')))
+		self.assertEqual(payload['from'], 'Teletraan <no-reply@example.com>')
+		self.assertEqual(payload['to'], [self.user.email])
+		self.assertIn('/accounts/reset/', payload['text'])
+		api_response.read.assert_called_once()
+
+	@override_settings(
+		MAILERS={
+			'default': {
+				'BACKEND': 'accounts.email_backend.ResendEmailBackend',
+				'OPTIONS': {'api_key': 'test-api-key'},
+			},
+		},
+		DEFAULT_FROM_EMAIL='Teletraan <no-reply@example.com>',
+	)
+	@patch('accounts.email_backend.urlopen', side_effect=OSError('API unavailable'))
+	def test_resend_api_failure_is_reported_instead_of_claiming_success(self, urlopen_mock):
+		with self.assertLogs('accounts.views', level='ERROR'):
+			response = self.client.post(reverse('password_reset'), {'email': self.user.email})
+
+		self.assertEqual(response.status_code, 503)
+		self.assertContains(response, 'no se envió ningún enlace', status_code=503)
+		urlopen_mock.assert_called_once()
+
 
 class PortfolioAccessTests(TestCase):
 	def setUp(self):
@@ -182,6 +284,99 @@ class PortfolioAccessTests(TestCase):
 
 		self.assertNotEqual(response.status_code, 200)
 		self.assertFalse(PortfolioItem.objects.filter(title='Proyecto no autorizado').exists())
+
+	def test_staff_can_search_and_filter_orders(self):
+		matching_service = ServicioCliente.objects.create(
+			cliente=self.client_user,
+			equipo='Notebook de diseño',
+			descripcion_falla='La pantalla no enciende.',
+			estado='EVAL',
+		)
+		ServicioCliente.objects.create(
+			cliente=self.client_user,
+			equipo='PC de oficina',
+			descripcion_falla='Requiere mantenimiento.',
+			estado='TERM',
+		)
+		self.client.force_login(self.admin)
+
+		response = self.client.get(reverse('admin_panel'), {
+			'tab': 'ordenes',
+			'q': 'Notebook',
+			'status': 'EVAL',
+		})
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, f'#{matching_service.pk} · Notebook de diseño')
+		self.assertNotContains(response, 'PC de oficina')
+		self.assertEqual(response.context['servicios'].paginator.count, 1)
+
+	def test_invalid_order_date_range_does_not_return_unfiltered_orders(self):
+		ServicioCliente.objects.create(
+			cliente=self.client_user,
+			equipo='Orden que no debe aparecer',
+			descripcion_falla='Descripción',
+		)
+		self.client.force_login(self.admin)
+
+		response = self.client.get(reverse('admin_panel'), {
+			'tab': 'ordenes',
+			'date_from': '2026-03-20',
+			'date_to': '2026-03-01',
+		})
+
+		self.assertEqual(response.context['servicios'].paginator.count, 0)
+		self.assertContains(response, 'La fecha inicial no puede ser posterior a la fecha final.')
+		self.assertNotContains(response, 'Orden que no debe aparecer')
+
+	def test_staff_can_search_clients_and_filter_active_accounts(self):
+		self.client_user.first_name = 'Camila'
+		self.client_user.save(update_fields=['first_name'])
+		User.objects.create_user(username='other-client', password='test-password')
+		self.client.force_login(self.admin)
+
+		response = self.client.get(reverse('admin_panel'), {
+			'tab': 'clientes',
+			'q': 'Camila',
+			'active': 'active',
+		})
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Camila')
+		self.assertNotContains(response, 'other-client')
+		self.assertEqual(response.context['clientes'].paginator.count, 1)
+
+	def test_staff_can_deactivate_and_reactivate_customer(self):
+		self.client.force_login(self.admin)
+
+		response = self.client.post(
+			reverse('customer_toggle_active', args=[self.client_user.pk]),
+			{'q': 'customer', 'active': 'active', 'clients_page': '1'},
+		)
+		self.assertRedirects(
+			response,
+			f"{reverse('admin_panel')}?q=customer&clients_page=1&active=inactive&tab=clientes",
+		)
+		self.client_user.refresh_from_db()
+		self.assertFalse(self.client_user.is_active)
+
+		response = self.client.post(
+			reverse('customer_toggle_active', args=[self.client_user.pk]),
+			{'q': 'customer', 'active': 'inactive'},
+		)
+		self.assertEqual(response.status_code, 302)
+		self.client_user.refresh_from_db()
+		self.assertTrue(self.client_user.is_active)
+
+	def test_staff_cannot_change_another_admin_account_status(self):
+		self.client.force_login(self.admin)
+		response = self.client.post(
+			reverse('customer_toggle_active', args=[self.admin.pk]),
+		)
+
+		self.assertEqual(response.status_code, 404)
+		self.admin.refresh_from_db()
+		self.assertTrue(self.admin.is_active)
 
 	def test_staff_panel_loads_orders_and_conversation_history(self):
 		service = ServicioCliente.objects.create(
