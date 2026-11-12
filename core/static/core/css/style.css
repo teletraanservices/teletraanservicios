@@ -153,8 +153,7 @@ a { text-underline-offset: .2em; }
   height: auto;
   max-width: 100%;
   object-fit: contain;
-  border-radius: 1rem;
-  filter: drop-shadow(0 14px 34px rgba(0, 0, 0, .28));
+  mix-blend-mode: lighten;
   animation: logo-arrive .65s ease-out both;
 }
 .hero-logo-img:hover { transform: translateY(-3px); transition: transform .25s ease; }
