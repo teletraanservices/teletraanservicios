@@ -1,24 +1,29 @@
 from django.http import HttpResponse
-from django.db import DatabaseError, connection
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 from xml.sax.saxutils import escape
-from .models import PortfolioItem
+from .project_content import load_projects
 
 def index_view(request):
-    proyectos = PortfolioItem.objects.filter(is_published=True)
-    return render(request, 'core/index.html', {'proyectos': proyectos})
+    proyectos = load_projects()
+    site_url = f'{request.scheme}://{request.get_host()}'
+    return render(request, 'core/index.html', {
+        'projects': proyectos,
+        'site_url': site_url,
+    })
 
 
 def cookies_view(request):
-    return render(request, 'core/cookies.html')
+    return render(request, 'core/cookies.html', {
+        'site_url': f'{request.scheme}://{request.get_host()}',
+    })
 
 
 @require_GET
 def robots_txt(request):
     sitemap_url = request.build_absolute_uri(reverse('sitemap'))
-    body = f"User-agent: *\nAllow: /\nDisallow: /accounts/\nDisallow: /admin/\nSitemap: {sitemap_url}\n"
+    body = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
     return HttpResponse(body, content_type='text/plain; charset=utf-8')
 
 
@@ -35,9 +40,5 @@ def sitemap_xml(request):
 
 
 @require_GET
-def health_check(request):
-    try:
-        connection.ensure_connection()
-    except DatabaseError:
-        return HttpResponse('unhealthy', status=503, content_type='text/plain')
+def health_check(_request):
     return HttpResponse('ok', content_type='text/plain')

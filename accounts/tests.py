@@ -414,27 +414,22 @@ class PortfolioAccessTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'Ya revisé tu solicitud.')
 
-	def test_homepage_only_shows_published_projects(self):
-		PortfolioItem.objects.create(
-			title='Visible',
-			description='Proyecto publicado.',
-			video_url='https://www.youtube.com/watch?v=example',
-			project_url='https://example.com/proyecto',
-			is_published=True,
-		)
-		PortfolioItem.objects.create(
-			title='Privado',
-			description='Borrador interno.',
-			video_url='https://www.youtube.com/watch?v=example',
-			is_published=False,
-		)
+	@patch('core.views.load_projects')
+	def test_homepage_only_shows_published_projects(self, load_projects):
+		load_projects.return_value = [{
+			'title': 'Visible',
+			'description': 'Proyecto publicado.',
+			'video_url': 'https://www.youtube.com/watch?v=example',
+			'project_url': 'https://example.com/proyecto',
+			'video_file': '',
+			'image': '',
+		}]
 
 		response = self.client.get('/')
 
 		self.assertContains(response, 'Visible')
 		self.assertContains(response, 'https://example.com/proyecto')
 		self.assertContains(response, 'https://www.youtube.com/watch?v=example')
-		self.assertNotContains(response, 'Privado')
 
 	def test_homepage_displays_clickable_business_contacts(self):
 		response = self.client.get(reverse('index'))

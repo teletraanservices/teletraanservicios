@@ -3,10 +3,10 @@
 
 {% block title %}Teletraan Services | Soporte técnico y software en Copiapó{% endblock %}
 {% block social_title %}Teletraan Services | Soporte técnico y software en Copiapó{% endblock %}
-{% block meta_description %}Soporte técnico, mantenimiento de computadores, armado de equipos y desarrollo web en Copiapó. Solicita tu servicio y síguelo en línea.{% endblock %}
+{% block meta_description %}Soporte técnico, mantenimiento de computadores, armado de equipos y desarrollo web en Copiapó. Conoce nuestros proyectos y contáctanos.{% endblock %}
 {% block extra_head %}
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"ProfessionalService","name":"Teletraan Services","url":"{{ request.scheme }}://{{ request.get_host }}{% url 'index' %}","image":"{{ request.scheme }}://{{ request.get_host }}{% static 'core/img/teletraan-logo.jpg' %}","description":"Soporte técnico, mantenimiento de computadores y desarrollo de software en Copiapó, Chile.","areaServed":{"@type":"City","name":"Copiapó"},"address":{"@type":"PostalAddress","addressLocality":"Copiapó","addressCountry":"CL"},"knowsAbout":["Soporte técnico de computadores","Mantenimiento informático","Desarrollo de software","Diseño web"]}
+{"@context":"https://schema.org","@type":"ProfessionalService","name":"Teletraan Services","url":"{{ site_url }}/","image":"{{ site_url }}{% static 'core/img/teletraan-logo.jpg' %}","description":"Soporte técnico, mantenimiento de computadores y desarrollo de software en Copiapó, Chile.","areaServed":{"@type":"City","name":"Copiapó"},"address":{"@type":"PostalAddress","addressLocality":"Copiapó","addressCountry":"CL"},"knowsAbout":["Soporte técnico de computadores","Mantenimiento informático","Desarrollo de software","Diseño web"]}
 </script>
 {% endblock %}
 {% block content %}
@@ -37,8 +37,8 @@
       <a href="#servicios" class="btn btn-teletraan btn-lg px-4">
         <i class="bi bi-cpu me-1"></i> Ver Servicios
       </a>
-      <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="btn btn-outline-teletraan btn-lg px-4">
-        <i class="bi bi-envelope me-1"></i> Solicitar Cotización
+      <a href="https://wa.me/56966526276" class="btn btn-outline-teletraan btn-lg px-4" target="_blank" rel="noopener noreferrer">
+        <i class="bi bi-whatsapp me-1"></i> Solicitar Cotización
       </a>
     </div>
   </div>
@@ -101,23 +101,27 @@
     </div>
 
     <div class="row g-4">
-      {% for proyecto in proyectos %}
+      {% for proyecto in projects %}
         <div class="col-md-6 col-xl-4">
           <article class="portfolio-card h-100">
             <div class="portfolio-media">
-              {% if proyecto.video %}
-                <video controls preload="metadata" playsinline {% if proyecto.image %}poster="{{ proyecto.image.url }}"{% endif %} aria-label="Video: {{ proyecto.title }}">
-                  <source src="{{ proyecto.video.url }}">
+              {% if proyecto.video_file %}
+                <video controls preload="metadata" playsinline {% if proyecto.image %}poster="{% static proyecto.image %}"{% endif %} aria-label="Video: {{ proyecto.title }}">
+                  <source src="{% static proyecto.video_file %}">
                   Tu navegador no permite reproducir este video.
                 </video>
               {% elif proyecto.image %}
-                <img src="{{ proyecto.image.url }}" alt="{{ proyecto.title }}" loading="lazy">
+                <img src="{% static proyecto.image %}" alt="{{ proyecto.title }}" loading="lazy">
+              {% elif proyecto.video_url %}
+                <a class="portfolio-video-link" href="{{ proyecto.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Ver video de {{ proyecto.title }}">
+                  <i class="bi bi-play-circle" aria-hidden="true"></i><span>Ver video del proyecto</span>
+                </a>
               {% endif %}
             </div>
             <div class="portfolio-copy">
-              <span class="portfolio-type">{% if proyecto.video %}PROYECTO · VIDEO{% else %}PROYECTO · GALERÍA{% endif %}</span>
+              <span class="portfolio-type">{% if proyecto.video_file or proyecto.video_url %}PROYECTO · VIDEO{% else %}PROYECTO · GALERÍA{% endif %}</span>
               <h3 class="h5 text-white mt-2 mb-2">{{ proyecto.title }}</h3>
-              <p class="text-secondary mb-3">{{ proyecto.description|linebreaksbr }}</p>
+              <p class="text-secondary mb-3">{{ proyecto.description }}</p>
               <div class="d-flex flex-wrap gap-3">
                 {% if proyecto.project_url %}<a class="portfolio-link" href="{{ proyecto.project_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>Ver proyecto</a>{% endif %}
                 {% if proyecto.video_url %}<a class="portfolio-link" href="{{ proyecto.video_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-play-circle me-1"></i>Ver video</a>{% endif %}
@@ -145,33 +149,21 @@
       <div class="col-lg-6">
         <h2 class="fw-bold text-white mb-3">En Teletraan Services optimizamos tu tecnología</h2>
         <p class="text-secondary">
-          Desde Copiapó entregamos soporte informático y desarrollo con comunicación clara y seguimiento de cada orden.
+          Desde Copiapó entregamos soporte informático y desarrollo con comunicación clara y atención directa.
         </p>
         <ul class="list-unstyled text-secondary">
           <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Diagnósticos claros antes de avanzar.</li>
-          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Seguimiento de tu servicio desde tu cuenta.</li>
-          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Comunicación directa durante el proceso.</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Soluciones pensadas para tus necesidades.</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i> Contacto directo por WhatsApp, correo e Instagram.</li>
         </ul>
       </div>
       <div class="col-lg-6">
         <div class="card card-teletraan p-4">
-          <h3 class="h5 text-white mb-3"><i class="bi bi-search me-2"></i>¿Ya eres cliente?</h3>
-          <p class="text-secondary small">Consulta el estado de tus órdenes y conversa con nuestro equipo desde tu espacio de cliente.</p>
-          {% if user.is_authenticated %}
-            {% if user.is_staff %}
-              <a href="{% url 'admin_panel' %}" class="btn btn-teletraan w-100">
-                <i class="bi bi-speedometer2 me-2"></i>Ir al Panel de Administración
-              </a>
-            {% else %}
-              <a href="{% url 'dashboard' %}" class="btn btn-teletraan w-100">
-                <i class="bi bi-speedometer2 me-2"></i>Ir a mi Panel de Estado
-              </a>
-            {% endif %}
-          {% else %}
-            <div class="d-grid gap-2">
-              <a href="{% url 'login' %}" class="btn btn-teletraan">Iniciar Sesión de Cliente</a>
-            </div>
-          {% endif %}
+          <h3 class="h5 text-white mb-3"><i class="bi bi-chat-dots me-2"></i>¿Tienes una idea o necesitas ayuda?</h3>
+          <p class="text-secondary small">Cuéntanos qué necesitas y conversemos directamente.</p>
+          <a href="https://wa.me/56966526276" class="btn btn-teletraan w-100" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-whatsapp me-2"></i>Escríbenos por WhatsApp
+          </a>
         </div>
       </div>
     </div>
@@ -215,16 +207,9 @@
     </div>
 
     <div class="card card-teletraan p-4 p-md-5 text-center">
-      <h3 class="h5 text-white mb-2">¿Quieres hacer seguimiento de un servicio?</h3>
-      <p class="text-secondary mb-4">Accede a tu cuenta para crear solicitudes y conversar con nuestro equipo.</p>
-      {% if user.is_authenticated %}
-        <a class="btn btn-teletraan align-self-center" href="{% url 'dashboard' %}">Ir a mis servicios</a>
-      {% else %}
-        <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-          <a class="btn btn-teletraan" href="{% url 'login' %}">Iniciar sesión</a>
-          <a class="btn btn-outline-teletraan" href="{% url 'register' %}">Crear cuenta</a>
-        </div>
-      {% endif %}
+      <h3 class="h5 text-white mb-2">¿Listo para comenzar?</h3>
+      <p class="text-secondary mb-4">Escríbenos y conversemos sobre tu proyecto.</p>
+      <a class="btn btn-teletraan align-self-center" href="https://wa.me/56966526276" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
     </div>
   </div>
 </section>

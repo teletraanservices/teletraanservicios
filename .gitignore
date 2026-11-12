@@ -19,7 +19,10 @@ db.sqlite3
 *.sqlite3
 *.sqlite3-journal
 media/
+!core/static/core/media/
+!core/static/core/media/**
 staticfiles/
+dist/
 
 # Logs and temporary files
 *.log
