@@ -39,8 +39,8 @@ def build_site(output_dir=OUTPUT_DIR):
         shutil.rmtree(static_output)
     for asset in (
         Path('core/css/style.css'),
-        Path('core/img/teletraan-logo.jpg'),
-        Path('core/img/teletraan-mark.png'),
+        Path('core/img/teletraan-logo.png'),
+        Path('core/img/teletraan-mark-transparent.png'),
         Path('core/js/cookie-notice.js'),
     ):
         source = STATIC_SOURCE_DIR / asset

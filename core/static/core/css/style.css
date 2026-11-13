@@ -59,7 +59,6 @@ a { text-underline-offset: .2em; }
   width: 42px;
   height: 42px;
   object-fit: contain;
-  border-radius: .65rem;
   filter: drop-shadow(0 4px 12px rgba(69, 164, 224, .18));
 }
 .navbar-toggler { border-color: var(--tt-border); }
@@ -153,7 +152,6 @@ a { text-underline-offset: .2em; }
   height: auto;
   max-width: 100%;
   object-fit: contain;
-  mix-blend-mode: lighten;
   animation: logo-arrive .65s ease-out both;
 }
 .hero-logo-img:hover { transform: translateY(-3px); transition: transform .25s ease; }
@@ -208,7 +206,7 @@ footer { margin-top: 2rem; border-top: 1px solid var(--tt-border); background: r
   .navbar-actions .btn span { display: none; }
   .navbar-toggler { margin-left: .45rem; padding: .3rem .5rem; }
   .navbar-collapse { order: 4; }
-  .hero-logo-img { width: min(78vw, 270px); border-radius: .8rem; }
+  .hero-logo-img { width: min(78vw, 270px); }
 }
 @media (min-width: 576px) {
   .navbar-actions { margin-left: 1rem; }
