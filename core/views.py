@@ -3,10 +3,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 from xml.sax.saxutils import escape
-from .project_content import load_projects
+from .models import PortfolioItem
 
 def index_view(request):
-    proyectos = load_projects()
+    proyectos = PortfolioItem.objects.filter(is_published=True)
     site_url = f'{request.scheme}://{request.get_host()}'
     return render(request, 'core/index.html', {
         'projects': proyectos,

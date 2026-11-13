@@ -6,7 +6,7 @@
   <div class="row justify-content-center"><div class="col-lg-8">
     <a class="small text-secondary text-decoration-none" href="{% url 'admin_panel' %}"><i class="bi bi-arrow-left me-1"></i>Volver a administración</a>
     <div class="portfolio-form-panel mt-3">
-      <div class="mb-4"><span class="section-kicker">CONTENIDO PÚBLICO</span><h1 class="h2 text-white mt-2 mb-1">{{ heading }}</h1><p class="text-secondary mb-0">Comparte una captura, una presentación en video o ambas.</p></div>
+      <div class="mb-4"><span class="section-kicker">CONTENIDO PÚBLICO</span><h1 class="h2 text-white mt-2 mb-1">{{ heading }}</h1><p class="text-secondary mb-0">Incluye el nombre, una descripción y el enlace del proyecto. También puedes agregar imágenes o videos.</p></div>
       <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
         {{ form.non_field_errors }}
         {% for field in form %}

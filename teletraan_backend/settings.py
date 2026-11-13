@@ -226,5 +226,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 # Redirección automática tras iniciar sesión y cerrar sesión
-LOGIN_REDIRECT_URL = '/accounts/dashboard/'
+LOGIN_REDIRECT_URL = '/accounts/admin-panel/'
 LOGOUT_REDIRECT_URL = '/'
+# Portal de clientes conservado para activarlo cuando esté lista la publicación dinámica.
+CUSTOMER_PORTAL_ENABLED = False

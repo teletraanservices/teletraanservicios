@@ -1,4 +1,5 @@
 from django.contrib.auth import views as auth_views
+from django.conf import settings
 from django.urls import path, reverse_lazy
 from . import views
 from .forms import SetPasswordForm
@@ -17,14 +18,20 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html',
     ), name='password_reset_complete'),
-    path('register/', views.register_view, name='register'),
     path('logout/', auth_views.LogoutView.as_view(next_page='index'), name='logout'),
-    path('dashboard/', views.dashboard_view, name='dashboard'),
     path('admin-panel/', views.admin_panel_view, name='admin_panel'),
-    path('admin-panel/clientes/<int:user_id>/estado/', views.toggle_customer_active_view, name='customer_toggle_active'),
     path('portfolio/nuevo/', views.portfolio_item_create_view, name='portfolio_create'),
     path('portfolio/<int:item_id>/editar/', views.portfolio_item_edit_view, name='portfolio_edit'),
     path('portfolio/<int:item_id>/eliminar/', views.portfolio_item_delete_view, name='portfolio_delete'),
-    path('servicio/<int:servicio_id>/mensaje/', views.enviar_mensaje_view, name='enviar_mensaje'),
-    path('servicio/<int:servicio_id>/mensajes/nuevos/', views.nuevos_mensajes_view, name='nuevos_mensajes'),
 ]
+
+# El registro, las solicitudes y el espacio del cliente quedan ocultos hasta
+# que CUSTOMER_PORTAL_ENABLED se active junto con el despliegue de la base de datos.
+if settings.CUSTOMER_PORTAL_ENABLED:
+    urlpatterns += [
+        path('register/', views.register_view, name='register'),
+        path('dashboard/', views.dashboard_view, name='dashboard'),
+        path('admin-panel/clientes/<int:user_id>/estado/', views.toggle_customer_active_view, name='customer_toggle_active'),
+        path('servicio/<int:servicio_id>/mensaje/', views.enviar_mensaje_view, name='enviar_mensaje'),
+        path('servicio/<int:servicio_id>/mensajes/nuevos/', views.nuevos_mensajes_view, name='nuevos_mensajes'),
+    ]

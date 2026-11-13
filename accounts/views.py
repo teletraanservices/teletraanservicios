@@ -37,6 +37,14 @@ class SiteLoginView(LoginView):
     template_name = 'core/login.html'
     authentication_form = LoginForm
 
+    def get_success_url(self):
+        return reverse('admin_panel' if self.request.user.is_staff else 'dashboard')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['customer_portal_enabled'] = settings.CUSTOMER_PORTAL_ENABLED
+        return context
+
     def form_valid(self, form):
         response = super().form_valid(form)
         session_age = 30 * 24 * 60 * 60 if form.cleaned_data.get('remember_me') else 0
@@ -129,117 +137,10 @@ def dashboard_view(request):
     })
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def admin_panel_view(request):
-    if request.method == 'POST':
-        servicio = get_object_or_404(ServicioCliente, pk=request.POST.get('servicio_id'))
-        form = ActualizarServicioForm(request.POST, instance=servicio)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Orden #{servicio.pk} actualizada.')
-        else:
-            messages.error(request, 'No se pudo actualizar la orden. Revisa los valores ingresados.')
-        return redirect('admin_panel')
-
-    all_services = ServicioCliente.objects.all()
-    service_summary = all_services.aggregate(
-        total=Count('pk'),
-        completed=Count('pk', filter=Q(estado='TERM')),
-    )
-    order_counts = {
-        'total': service_summary['total'],
-        'open': service_summary['total'] - service_summary['completed'],
-        'completed': service_summary['completed'],
-    }
-
-    active_tab = request.GET.get('tab')
-    if active_tab not in {'ordenes', 'clientes', 'portafolio'}:
-        active_tab = 'ordenes'
-
-    order_filter = AdminOrderFilterForm(
-        request.GET if active_tab == 'ordenes' else None
-    )
-    services = all_services
-    if order_filter.is_valid():
-        search = order_filter.cleaned_data['q'].strip()
-        if search:
-            search_query = (
-                Q(equipo__icontains=search)
-                | Q(descripcion_falla__icontains=search)
-                | Q(cliente__username__icontains=search)
-                | Q(cliente__first_name__icontains=search)
-                | Q(cliente__last_name__icontains=search)
-                | Q(cliente__email__icontains=search)
-            )
-            if search.isdecimal() and len(search) <= 19:
-                order_id = int(search)
-                if order_id <= 9223372036854775807:
-                    search_query |= Q(pk=order_id)
-            services = services.filter(search_query)
-        if order_filter.cleaned_data['status']:
-            services = services.filter(estado=order_filter.cleaned_data['status'])
-        if order_filter.cleaned_data['date_from']:
-            services = services.filter(
-                fecha_ingreso__date__gte=order_filter.cleaned_data['date_from']
-            )
-        if order_filter.cleaned_data['date_to']:
-            services = services.filter(
-                fecha_ingreso__date__lte=order_filter.cleaned_data['date_to']
-            )
-    else:
-        services = all_services.none()
-
-    services = services.select_related('cliente').prefetch_related(
-        Prefetch('core_mensajes', queryset=MensajeProyecto.objects.select_related('emisor'))
-    )
-    order_page = Paginator(services, 20).get_page(request.GET.get('orders_page'))
-
-    all_clients = User.objects.filter(is_staff=False, is_superuser=False)
-    client_filter = AdminClientFilterForm(
-        request.GET if active_tab == 'clientes' else None
-    )
-    filtered_clients = all_clients
-    if client_filter.is_valid():
-        search = client_filter.cleaned_data['q'].strip()
-        if search:
-            filtered_clients = filtered_clients.filter(
-                Q(username__icontains=search)
-                | Q(first_name__icontains=search)
-                | Q(last_name__icontains=search)
-                | Q(email__icontains=search)
-            )
-        if client_filter.cleaned_data['active'] == 'active':
-            filtered_clients = filtered_clients.filter(is_active=True)
-        elif client_filter.cleaned_data['active'] == 'inactive':
-            filtered_clients = filtered_clients.filter(is_active=False)
-    else:
-        filtered_clients = all_clients.none()
-
-    clients_page = Paginator(
-        filtered_clients.annotate(
-            total_servicios=Count('core_servicios_cliente', distinct=True)
-        ).order_by('-date_joined'),
-        25,
-    ).get_page(request.GET.get('clients_page'))
-
-    proyectos = PortfolioItem.objects.all()
-    query_params = request.GET.copy()
-    query_params.pop('orders_page', None)
-    query_params.pop('clients_page', None)
-    query_params['tab'] = active_tab
     return render(request, 'accounts/admin_panel.html', {
-        'servicios': order_page,
-        'clientes': clients_page,
-        'proyectos': proyectos,
-        'estados': ServicioCliente.ESTADOS,
-        'mensaje_form': MensajeProyectoForm(),
-        'order_filter': order_filter,
-        'client_filter': client_filter,
-        'order_counts': order_counts,
-        'orders_query': query_params.urlencode(),
-        'clients_query': query_params.urlencode(),
-        'active_tab': active_tab,
-        'total_clients': all_clients.count(),
+        'proyectos': PortfolioItem.objects.all(),
     })
 
 
@@ -269,7 +170,7 @@ def toggle_customer_active_view(request, user_id):
     return redirect(f'{reverse("admin_panel")}?{urlencode(query)}')
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def portfolio_item_create_view(request):
     form = PortfolioItemForm(
         request.POST if request.method == 'POST' else None,
@@ -282,7 +183,7 @@ def portfolio_item_create_view(request):
     return render(request, 'accounts/portfolio_form.html', {'form': form, 'heading': 'Agregar proyecto'})
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def portfolio_item_edit_view(request, item_id):
     item = get_object_or_404(PortfolioItem, pk=item_id)
     old_image = item.image.name
@@ -307,7 +208,7 @@ def portfolio_item_edit_view(request, item_id):
     })
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 @require_POST
 def portfolio_item_delete_view(request, item_id):
     item = get_object_or_404(PortfolioItem, pk=item_id)

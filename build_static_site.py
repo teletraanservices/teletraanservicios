@@ -57,6 +57,7 @@ def build_site(output_dir=OUTPUT_DIR):
         'projects': load_projects(static_source_dir=STATIC_SOURCE_DIR),
         'request': request,
         'site_url': SITE_URL,
+        'static_site_build': True,
     }
     (output_dir / 'index.html').write_text(
         get_template('core/index.html').render(context),

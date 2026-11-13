@@ -90,8 +90,8 @@ class PortfolioItem(models.Model):
         verbose_name_plural = 'proyectos del portafolio'
 
     def clean(self):
-        if not self.image and not self.video and not self.video_url:
-            raise ValidationError('Agrega una imagen o un video para mostrar el proyecto.')
+        if not any((self.image, self.video, self.video_url, self.project_url)):
+            raise ValidationError('Agrega una imagen, un video o el enlace del proyecto.')
 
     def __str__(self):
         return self.title

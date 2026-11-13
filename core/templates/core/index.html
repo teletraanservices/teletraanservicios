@@ -105,21 +105,27 @@
         <div class="col-md-6 col-xl-4">
           <article class="portfolio-card h-100">
             <div class="portfolio-media">
-              {% if proyecto.video_file %}
-                <video controls preload="metadata" playsinline {% if proyecto.image %}poster="{% static proyecto.image %}"{% endif %} aria-label="Video: {{ proyecto.title }}">
-                  <source src="{% static proyecto.video_file %}">
+              {% if static_site_build and proyecto.video_file %}
+                <video controls preload="metadata" playsinline {% if proyecto.image %}poster="{% static proyecto.image %}"{% endif %} aria-label="Video: {{ proyecto.title }}"><source src="{% static proyecto.video_file %}">Tu navegador no permite reproducir este video.</video>
+              {% elif proyecto.video %}
+                <video controls preload="metadata" playsinline {% if proyecto.image %}poster="{{ proyecto.image.url }}"{% endif %} aria-label="Video: {{ proyecto.title }}">
+                  <source src="{{ proyecto.video.url }}">
                   Tu navegador no permite reproducir este video.
                 </video>
-              {% elif proyecto.image %}
+              {% elif static_site_build and proyecto.image %}
                 <img src="{% static proyecto.image %}" alt="{{ proyecto.title }}" loading="lazy">
+              {% elif proyecto.image %}
+                <img src="{{ proyecto.image.url }}" alt="{{ proyecto.title }}" loading="lazy">
               {% elif proyecto.video_url %}
                 <a class="portfolio-video-link" href="{{ proyecto.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Ver video de {{ proyecto.title }}">
                   <i class="bi bi-play-circle" aria-hidden="true"></i><span>Ver video del proyecto</span>
                 </a>
+              {% else %}
+                <div class="portfolio-video-link" aria-hidden="true"><i class="bi bi-window-stack"></i><span>Proyecto Teletraan</span></div>
               {% endif %}
             </div>
             <div class="portfolio-copy">
-              <span class="portfolio-type">{% if proyecto.video_file or proyecto.video_url %}PROYECTO · VIDEO{% else %}PROYECTO · GALERÍA{% endif %}</span>
+              <span class="portfolio-type">{% if proyecto.video or proyecto.video_file or proyecto.video_url %}PROYECTO · VIDEO{% else %}PROYECTO · GALERÍA{% endif %}</span>
               <h3 class="h5 text-white mt-2 mb-2">{{ proyecto.title }}</h3>
               <p class="text-secondary mb-3">{{ proyecto.description }}</p>
               <div class="d-flex flex-wrap gap-3">

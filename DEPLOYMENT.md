@@ -1,40 +1,28 @@
-# Despliegue estático en Render
+# Desplegar el sitio Django
 
-El sitio público se genera durante el build y se sirve como archivos estáticos. No requiere PostgreSQL, Shell de pago, contraseña de administrador, API de correo ni un servidor Django en producción.
+El panel de administración guarda proyectos en la base de datos; por eso el sitio debe ejecutarse como un **Web Service**, no como un Static Site.
 
-## Crear el Static Site
+## Configuración en Render
 
-1. En Render, elige **New → Static Site** y conecta `teletraanservices/teletraanservicios`, rama `main`.
-2. Configura el directorio raíz como la raíz del repositorio.
-3. Usa estos valores:
+1. Crea un Web Service conectado al repositorio y selecciona Python.
+2. Configura el build command como `pip install -r requirements.txt`.
+3. Configura el start command como `python manage.py migrate && gunicorn teletraan_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`.
+4. Configura `DJANGO_DEBUG=false`, `DJANGO_SECRET_KEY` con un valor secreto largo, `DJANGO_ALLOWED_HOSTS` con el host del servicio y `DATABASE_URL` con una base PostgreSQL persistente.
+5. Si quieres subir imágenes o videos desde el panel, configura almacenamiento persistente para `MEDIA_ROOT` o un bucket S3 mediante las variables `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME`, `AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`. El disco local efímero del servicio puede perder los archivos al volver a desplegar.
+6. Cuando el servicio esté disponible, crea la cuenta del administrador desde la Shell del servicio con `python manage.py createsuperuser`. El formulario público no permite registrar usuarios y acepta únicamente cuentas con permiso de staff.
+7. Abre `/accounts/login/`, inicia sesión y agrega tus proyectos. Activa «Publicado» para mostrarlos en la sección pública.
 
-   - **Build Command:** `pip install -r requirements-static.txt && python build_static_site.py`
-   - **Publish Directory:** `dist`
-4. En **Environment**, configura `SITE_URL` con la URL HTTPS pública asignada al nuevo Static Site, por ejemplo `https://nombre-del-sitio.onrender.com`.
-5. Activa los despliegues automáticos desde `main`.
-6. Espera el estado **Live** y prueba `/`, `/cookies/`, `/robots.txt` y `/sitemap.xml`.
+El portal de clientes permanece desactivado (`CUSTOMER_PORTAL_ENABLED = False`): no hay registro ni acceso de clientes disponible. Al preparar esa etapa, configura una base de datos persistente y activa el ajuste para publicar sus rutas.
 
-No agregues `DATABASE_URL`, `DJANGO_SECRET_KEY`, `RESEND_API_KEY` ni variables SMTP: el sitio estático no las utiliza. El build no ejecuta migraciones ni consultas a una base de datos.
+Configura también `DJANGO_CSRF_TRUSTED_ORIGINS` con los orígenes HTTPS usados por el sitio si el proveedor lo requiere. No publiques el valor de `DJANGO_SECRET_KEY` ni credenciales de base de datos o almacenamiento.
 
-## Servicio Django anterior
-
-El Web Service Django anterior es independiente del nuevo Static Site. Manténlo hasta verificar que el Static Site funciona; luego puedes detenerlo desde Render para evitar servir dos versiones. El nuevo Static Site tendrá su propia URL `onrender.com`. Sin un dominio propio, no se puede conservar exactamente la URL anterior del Web Service en ambos servicios a la vez.
-
-La versión estática no incluye rutas de cuentas, inicio de sesión, solicitudes, conversaciones, panel Django ni recuperación de contraseña. El acceso de edición es el control de permisos de GitHub sobre el repositorio: solo las cuentas con permiso de escritura pueden publicar cambios.
-
-## Editar el portafolio
-
-El archivo `content/projects.json` contiene los proyectos. Sube medios pequeños a `core/static/core/media/projects/` y edita el JSON en GitHub. Cada commit en `main` inicia un nuevo build. Las rutas de imagen y video parten de `core/static/`; imágenes de hasta 10 MB y videos de hasta 25 MB se aceptan. Para videos más grandes, publica el video en un servicio externo y agrega su URL HTTPS a `video_url`.
-
-La carpeta `dist/` se genera en cada build y está excluida del repositorio. El contenido en el portafolio es público; publica únicamente material que tengas permiso de mostrar.
-
-## Pruebas y vista previa local
+## Desarrollo local
 
 ```powershell
-pip install -r requirements-static.txt
-python manage.py test core.tests
-python build_static_site.py
-python -m http.server 8000 --directory dist
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
 ```
 
-Abre `http://127.0.0.1:8000/` para revisar la vista previa. El archivo `SITE_URL` configura enlaces canónicos y el sitemap del sitio publicado; localmente puede apuntar a la URL pública hasta que el servicio de Render esté creado.
+Los archivos locales se guardan en `media/`. `python build_static_site.py` sigue disponible para generar una vista estática de los proyectos incluidos en `content/projects.json`, pero esa salida no incluye login ni panel de administración.

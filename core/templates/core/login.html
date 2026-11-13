@@ -11,7 +11,7 @@
                 <div class="text-center mb-4">
                     <span class="login-icon mb-3" aria-hidden="true"><i class="bi bi-person-lock"></i></span>
                     <h1 class="h2 fw-bold text-white">Iniciar sesión</h1>
-                    <p class="text-secondary small mb-0">Accede a tu espacio de Teletraan Services.</p>
+                    <p class="text-secondary small mb-0">{% if customer_portal_enabled %}Accede a tu espacio de Teletraan Services.{% else %}Acceso exclusivo para administración.{% endif %}</p>
                 </div>
 
                 <form method="post" novalidate>
@@ -58,9 +58,7 @@
                 <div class="text-center mt-3">
                     <a href="{% url 'password_reset' %}" class="login-secondary-link small">¿Olvidaste tu contraseña?</a>
                 </div>
-                <div class="text-center mt-4">
-                    <p class="text-secondary small mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-info text-decoration-none fw-bold">Crea una cuenta</a></p>
-                </div>
+                {% if customer_portal_enabled %}<div class="text-center mt-4"><p class="text-secondary small mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-info text-decoration-none fw-bold">Crea una cuenta</a></p></div>{% endif %}
             </div>
         </div>
     </div>

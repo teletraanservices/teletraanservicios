@@ -50,6 +50,12 @@ class LoginForm(AuthenticationForm):
             code='invalid_login',
         )
 
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+        from django.conf import settings
+        if not settings.CUSTOMER_PORTAL_ENABLED and not user.is_staff:
+            raise self.get_invalid_login_error()
+
 
 class PasswordResetForm(DjangoPasswordResetForm):
     def __init__(self, *args, **kwargs):
