@@ -6,7 +6,7 @@ from xml.sax.saxutils import escape
 from .models import PortfolioItem
 
 def index_view(request):
-    proyectos = PortfolioItem.objects.filter(is_published=True)
+    proyectos = PortfolioItem.objects.filter(is_published=True).prefetch_related('gallery_images')
     site_url = f'{request.scheme}://{request.get_host()}'
     return render(request, 'core/index.html', {
         'projects': proyectos,

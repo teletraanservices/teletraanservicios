@@ -3,9 +3,41 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm as DjangoPasswordResetForm
 from django.contrib.auth.forms import SetPasswordForm as DjangoSetPasswordForm
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.core.mail import EmailMultiAlternatives
 from django.template import loader
-from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
+from core.models import (
+    MAX_PORTFOLIO_IMAGES,
+    MensajeProyecto,
+    PortfolioItem,
+    ServicioCliente,
+    validate_portfolio_file_size,
+)
+
+
+class MultipleImageInput(forms.FileInput):
+    allow_multiple_selected = True
+
+
+class MultipleImageField(forms.ImageField):
+    widget = MultipleImageInput
+
+    def __init__(self, *args, **kwargs):
+        self.uploaded_images = []
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        self.uploaded_images = []
+        if data in self.empty_values:
+            return super().clean(data, initial)
+
+        uploads = list(data) if isinstance(data, (list, tuple)) else [data]
+        if len(uploads) > MAX_PORTFOLIO_IMAGES:
+            raise ValidationError(f'Puedes subir un máximo de {MAX_PORTFOLIO_IMAGES} imágenes por proyecto.')
+
+        self.uploaded_images = uploads
+        cleaned_uploads = [super(MultipleImageField, self).clean(upload) for upload in uploads]
+        return cleaned_uploads[0]
 
 
 class LoginForm(AuthenticationForm):
@@ -185,13 +217,26 @@ class AdminClientFilterForm(forms.Form):
 
 
 class PortfolioItemForm(forms.ModelForm):
+    image = MultipleImageField(
+        required=False,
+        label='Imágenes del proyecto',
+        help_text=(
+            'Selecciona hasta 10 imágenes JPG, PNG o WebP (máximo 100 MB cada una). '
+            'La primera será la portada. Al editar, subir imágenes nuevas reemplaza la galería actual.'
+        ),
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
+            validate_portfolio_file_size,
+        ],
+    )
+
     class Meta:
         model = PortfolioItem
         fields = ['title', 'description', 'image', 'video', 'video_url', 'project_url', 'is_published', 'position']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/jpeg,image/png,image/webp'}),
+            'image': MultipleImageInput(attrs={'class': 'form-control', 'accept': 'image/jpeg,image/png,image/webp'}),
             'video': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'video/mp4,video/webm'}),
             'video_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
             'project_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),

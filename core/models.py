@@ -3,6 +3,8 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 
+MAX_PORTFOLIO_IMAGES = 10
+
 
 def validate_portfolio_file_size(upload):
     if upload.size > 100 * 1024 * 1024:
@@ -95,3 +97,23 @@ class PortfolioItem(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PortfolioImage(models.Model):
+    portfolio_item = models.ForeignKey(
+        PortfolioItem,
+        on_delete=models.CASCADE,
+        related_name='gallery_images',
+    )
+    image = models.ImageField(
+        upload_to='portfolio/images/',
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']), validate_portfolio_file_size],
+        verbose_name='Imagen',
+    )
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['position', 'pk']
+
+    def __str__(self):
+        return f'Imagen {self.position + 1} de {self.portfolio_item}'

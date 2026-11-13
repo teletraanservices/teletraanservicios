@@ -112,10 +112,14 @@
                   <source src="{{ proyecto.video.url }}">
                   Tu navegador no permite reproducir este video.
                 </video>
-              {% elif static_site_build and proyecto.image %}
-                <img src="{% static proyecto.image %}" alt="{{ proyecto.title }}" loading="lazy">
               {% elif proyecto.image %}
-                <img src="{{ proyecto.image.url }}" alt="{{ proyecto.title }}" loading="lazy">
+                <div id="portfolio-gallery-{{ forloop.counter }}" class="carousel slide portfolio-gallery" data-bs-interval="false">
+                  <div class="carousel-inner">
+                    <div class="carousel-item active"><img src="{% if static_site_build %}{% static proyecto.image %}{% else %}{{ proyecto.image.url }}{% endif %}" alt="{{ proyecto.title }} — imagen 1" loading="lazy"></div>
+                    {% for gallery_image in proyecto.gallery_images.all %}<div class="carousel-item"><img src="{{ gallery_image.image.url }}" alt="{{ proyecto.title }} — imagen {{ forloop.counter|add:1 }}" loading="lazy"></div>{% endfor %}
+                  </div>
+                  {% if proyecto.gallery_images.all %}<button class="carousel-control-prev" type="button" data-bs-target="#portfolio-gallery-{{ forloop.counter }}" data-bs-slide="prev" aria-label="Imagen anterior"><span class="carousel-control-prev-icon" aria-hidden="true"></span></button><button class="carousel-control-next" type="button" data-bs-target="#portfolio-gallery-{{ forloop.counter }}" data-bs-slide="next" aria-label="Imagen siguiente"><span class="carousel-control-next-icon" aria-hidden="true"></span></button>{% endif %}
+                </div>
               {% elif proyecto.video_url %}
                 <a class="portfolio-video-link" href="{{ proyecto.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Ver video de {{ proyecto.title }}">
                   <i class="bi bi-play-circle" aria-hidden="true"></i><span>Ver video del proyecto</span>

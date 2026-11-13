@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 from smtplib import SMTPException
 import logging
 
-from core.models import MensajeProyecto, PortfolioItem, ServicioCliente
+from core.models import MensajeProyecto, PortfolioImage, PortfolioItem, ServicioCliente
 from .forms import (
     AdminClientFilterForm,
     AdminOrderFilterForm,
@@ -177,7 +177,8 @@ def portfolio_item_create_view(request):
         request.FILES if request.method == 'POST' else None,
     )
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        item = form.save()
+        _save_extra_portfolio_images(item, form)
         messages.success(request, 'Proyecto agregado al portafolio.')
         return redirect('admin_panel')
     return render(request, 'accounts/portfolio_form.html', {'form': form, 'heading': 'Agregar proyecto'})
@@ -186,7 +187,8 @@ def portfolio_item_create_view(request):
 @staff_member_required(login_url='login')
 def portfolio_item_edit_view(request, item_id):
     item = get_object_or_404(PortfolioItem, pk=item_id)
-    old_image = item.image.name
+    old_image = item.image
+    old_gallery_images = list(item.gallery_images.all())
     old_video = item.video.name
     form = PortfolioItemForm(
         request.POST if request.method == 'POST' else None,
@@ -194,9 +196,15 @@ def portfolio_item_edit_view(request, item_id):
         instance=item,
     )
     if request.method == 'POST' and form.is_valid():
+        uploaded_images = form.fields['image'].uploaded_images
         item = form.save()
-        if old_image and old_image != item.image.name:
-            item.image.storage.delete(old_image)
+        if uploaded_images:
+            item.gallery_images.all().delete()
+            _save_extra_portfolio_images(item, form)
+            if old_image and old_image.name != item.image.name:
+                old_image.storage.delete(old_image.name)
+            for gallery_image in old_gallery_images:
+                gallery_image.image.storage.delete(gallery_image.image.name)
         if old_video and old_video != item.video.name:
             item.video.storage.delete(old_video)
         messages.success(request, 'Proyecto actualizado.')
@@ -213,14 +221,22 @@ def portfolio_item_edit_view(request, item_id):
 def portfolio_item_delete_view(request, item_id):
     item = get_object_or_404(PortfolioItem, pk=item_id)
     image = item.image
+    gallery_images = list(item.gallery_images.all())
     video = item.video
     item.delete()
     if image:
         image.storage.delete(image.name)
+    for gallery_image in gallery_images:
+        gallery_image.image.storage.delete(gallery_image.image.name)
     if video:
         video.storage.delete(video.name)
     messages.success(request, 'Proyecto retirado del portafolio.')
     return redirect('admin_panel')
+
+
+def _save_extra_portfolio_images(item, form):
+    for position, uploaded_image in enumerate(form.fields['image'].uploaded_images[1:], start=1):
+        PortfolioImage.objects.create(portfolio_item=item, image=uploaded_image, position=position)
 
 
 @login_required
